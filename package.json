@@ -5,15 +5,38 @@
   "author": "bluepostit (https://github.com/bluepostit",
   "license": "MIT",
   "private": true,
+  "types": "dist/types/index.d.ts",
+  "scripts": {
+    "webpack:watch": "webpack -w --mode=development",
+    "type-check": "tsc --noEmit",
+    "type-check:watch": "yarn run type-check -- --watch",
+    "build:types": "tsc --emitDeclarationOnly",
+    "build:js": "webpack --mode=production",
+    "build": "yarn run build:types && yarn run build:js",
+    "start:dev": "nodemon dist/bundle.js",
+    "dev:server": "concurrently \"yarn webpack:watch\" \"yarn start:dev\"",
+    "dev": "yarn run dev:server"
+  },
   "dependencies": {
     "express": "^4.17.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.11.1",
+    "@babel/plugin-proposal-class-properties": "^7.10.4",
+    "@babel/plugin-proposal-object-rest-spread": "^7.11.0",
+    "@babel/preset-env": "^7.11.0",
+    "@babel/preset-typescript": "^7.10.4",
     "@types/express": "^4.17.7",
     "@types/node": "^14.0.27",
+    "awesome-typescript-loader": "^5.2.1",
+    "babel-loader": "^8.1.0",
+    "concurrently": "^5.3.0",
+    "fork-ts-checker-webpack-plugin": "^5.0.14",
+    "source-map-loader": "^1.0.1",
     "ts-node": "^8.10.2",
     "typescript": "^3.9.7",
     "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.12"
+    "webpack-cli": "^3.3.12",
+    "webpack-node-externals": "^2.5.1"
   }
 }
