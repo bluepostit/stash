@@ -1,0 +1,16 @@
+{
+  "name": "stash",
+  "version": "1.0.0",
+  "description": "API to keep track of your items",
+  "main": "index.js",
+  "author": "bluepostit (https://github.com/bluepostit",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.7"
+  }
+}
