@@ -13,6 +13,7 @@
     "esModuleInterop": true,
     "noUnusedLocals": true,
     "noImplicitAny": true,
+    "forceConsistentCasingInFileNames": true,
     "declarationDir": "dist/types",
     "declaration": true,
     "strict": true
