@@ -1,9 +1,5 @@
 import path from 'path'
 import * as dotenv from 'dotenv'
-import Knex from 'knex'
-import { Model } from 'objection'
-
-import knexConfig from '../config/knexfile'
 
 interface Environment {
   setup(): void
@@ -19,19 +15,12 @@ const setupDotenv = (env: string) => {
   }
 }
 
-const setupKnexConfig = (env: string) => {
-  const config = knexConfig[env]
-  const knex = Knex(config)
-  Model.knex(knex)
-}
-
 const environment: Environment = {
   setup: () => {
     const NODE_ENV: string | undefined = process.env.NODE_ENV
     const env = NODE_ENV || 'development'
     setupDotenv(env)
-    setupKnexConfig(env)
   }
 }
 
-export default environment
+environment.setup()

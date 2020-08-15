@@ -1,8 +1,10 @@
 import { execSync } from 'child_process'
 import { exit } from 'process'
 import { debug as debugModule } from 'debug'
+import '../src/config/environment'
+import '../src/config/knex'
 
-// const MIGRATE_COMMAND = 'knex migrate:latest'
+const MIGRATE_COMMAND = 'knex migrate:latest'
 const TEST_COMMAND = 'mocha --exit --recursive -r ts-node/register --extension ts '
 const DEFAULT_TARGET = __dirname
 
@@ -26,7 +28,7 @@ const run = (command: string) => {
 
 const test = (target: string, args?: string[]) => {
   try {
-    // run(MIGRATE_COMMAND)
+    run(MIGRATE_COMMAND)
     let rest = ''
     if (args) {
       rest = args.map(r => r.replace(/\s/g, '\\ ')).join(' ')

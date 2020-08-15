@@ -4,12 +4,11 @@ import helmet from 'helmet'
 import morgan from 'morgan'
 
 // Needed for Babel:
-import "core-js/stable";
-import "regenerator-runtime/runtime";
-import environment from './common/environment'
+import "core-js/stable"
+import "regenerator-runtime/runtime"
 
-// Setup environment:
-environment.setup()
+import './config/environment'
+import './config/knex'
 
 import { petsRouter } from './pets/pets.router'
 import { errorHandler } from './middleware/errors.middleware';

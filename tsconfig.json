@@ -19,7 +19,7 @@
     "strict": true
   },
   "include": [
-    "./src/**/*"
+    "./src/**/*", "src/config", "knexfile.ts"
   ],
   "exclude": [
     "node_modules",
