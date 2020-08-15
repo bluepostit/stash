@@ -1,6 +1,3 @@
-import '../config/environment'
-import '../config/knex'
-
 import { Model } from 'objection'
 
 export default class Item extends Model {

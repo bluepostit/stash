@@ -5,7 +5,7 @@ import '../src/config/environment'
 import '../src/config/knex'
 
 const MIGRATE_COMMAND = 'knex migrate:latest'
-const TEST_COMMAND = 'mocha --exit --recursive -r ts-node/register --extension ts '
+const TEST_COMMAND = 'mocha'
 const DEFAULT_TARGET = __dirname
 
 const debug = (() => {
