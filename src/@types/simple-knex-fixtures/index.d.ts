@@ -1,12 +1,12 @@
 declare module 'simple-knex-fixtures' {
-  import Knex, { ConnectionConfig } from 'knex'
+  import Knex from 'knex'
 
   export function loadFile(
-    path: string, connection: ConnectionConfig): Promise<void>
+    path: string, configuration: Knex): Promise<void>
 
   export function loadFiles(
-    path: string, connection: ConnectionConfig): Promise<void>
+    path: string, configuration: Knex): Promise<void>
 
   export function loadFiles(
-    paths: string[], connection: ConnectionConfig): Promise<void>
+    paths: string[], configuration: Knex): Promise<void>
 }

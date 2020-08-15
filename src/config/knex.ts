@@ -3,7 +3,6 @@ import { Model } from 'objection'
 
 import knexConfig from '../../knexfile'
 
-export let knex: Knex
 export let config: {
   connection: ConnectionConfig
 }
@@ -36,6 +35,6 @@ const setup = (config: object) => {
 
 let env = getEnv()
 config = getConfig(env)
-knex = setup(config)
+const knex = setup(config)
 
 export { knex as default }
