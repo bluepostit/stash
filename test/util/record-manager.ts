@@ -4,7 +4,7 @@ import fixtures from 'simple-knex-fixtures'
 import { dependencyOrder as Models } from '../../src/models'
 import debug from './debug'
 
-import { config as knexConfig } from '../../src/config/knex'
+import knex from '../../src/config/knex'
 
 interface RecordManagerInterface {
   loadFixture (name: string): Promise<void>
@@ -17,7 +17,7 @@ const RecordManager: RecordManagerInterface = class RecordManager {
     const dirPrefix = path.join(__dirname, '../fixtures')
     await fixtures.loadFile(
       `${dirPrefix}/${name}.json`,
-      knexConfig.connection
+      knex
     )
   }
 

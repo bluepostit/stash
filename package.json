@@ -16,7 +16,8 @@
     "start:dev": "nodemon src/index.ts",
     "dev:server": "concurrently \"yarn webpack:watch\" \"yarn start:dev\"",
     "dev": "yarn run dev:server",
-    "test": "NODE_ENV=test ts-node test/test.ts"
+    "test": "NODE_ENV=test ts-node test/test.ts",
+    "test:watch": "NODE_ENV=test mocha -w test/**/*.spec.ts"
   },
   "dependencies": {
     "cors": "^2.8.5",
