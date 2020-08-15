@@ -25,7 +25,7 @@ describe('Item', () => {
   })
 
   describe('parents and children', () => {
-    it('can be added as a child of another Item', async () => {
+    it('can become a child of another Item', async () => {
       await RecordManager.loadFixture('items/items.no-children')
       let items = await Item.query()
       let parentItem = items[0]
@@ -40,11 +40,11 @@ describe('Item', () => {
       parentItem = await Item
         .query()
         .findById(parentId)
-        .withGraphFetched('[parent,children]')
+        .modify('defaultSelects')
       childItem = await Item
         .query()
         .findById(childId)
-        .withGraphFetched('[parent,children]')
+        .modify('defaultSelects')
 
       expect(parentItem.children).to.have.lengthOf(1)
       // @ts-ignore: Object is possibly 'undefined'
@@ -56,8 +56,35 @@ describe('Item', () => {
       expect(childItem.children).to.have.lengthOf(0)
     })
 
-    it('can have no parent Item')
-    it('can have children Items')
-    it('can have no children Items')
+    it('can be removed from its parent Item', async () => {
+      await RecordManager.loadFixture('items/item.with-children')
+      let items = await Item
+        .query()
+        .modify('defaultSelects')
+      let parent = items[0]
+      expect(parent).not.to.be.empty
+      const childCountBefore = (parent.children as Item[]).length
+
+      // Remove an item from its parent
+      let child = (parent.children as Item[])[0]
+      await child
+        .$relatedQuery('parent')
+        .unrelate()
+
+      // Reload the items
+      parent = await Item
+        .query()
+        .findById(parent.id)
+        .modify('defaultSelects')
+      child = await Item
+        .query()
+        .findById(child.id)
+        .modify('defaultSelects')
+
+      // Check
+      expect((parent.children as Item[]).length)
+        .to.be.eql(childCountBefore - 1)
+      expect(child.parent).to.be.null
+    })
   })
 })

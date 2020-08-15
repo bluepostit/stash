@@ -1,4 +1,4 @@
-import { Model } from 'objection'
+import { Model, Modifiers } from 'objection'
 
 export default class Item extends Model {
   id!: number
@@ -41,4 +41,11 @@ export default class Item extends Model {
       }
     }
   })
+
+  static modifiers: Modifiers = {
+    defaultSelects(query) {
+      query.select('id', 'name', 'description')
+        .withGraphFetched('[parent,children]')
+    }
+  }
 }

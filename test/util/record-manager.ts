@@ -2,7 +2,7 @@ import path from 'path'
 import { Model } from 'objection'
 import fixtures from 'simple-knex-fixtures'
 import { dependencyOrder as Models } from '../../src/models'
-import debug from './debug'
+// import debug from './debug'
 
 import knex from '../../src/config/knex'
 
@@ -13,7 +13,6 @@ interface RecordManagerInterface {
 
 const RecordManager: RecordManagerInterface = class RecordManager {
   static async loadFixture(name: string) {
-    debug(`loading fixture '${name}'`)
     const dirPrefix = path.join(__dirname, '../fixtures')
     await fixtures.loadFile(
       `${dirPrefix}/${name}.json`,
@@ -24,7 +23,6 @@ const RecordManager: RecordManagerInterface = class RecordManager {
   static async deleteAll(models?: typeof Model[]) {
     models = models || Models
     for (const model of models) {
-      debug(`deleting all ${model.name}s`)
       await model
         .query()
         .delete()
