@@ -2,7 +2,9 @@ import express from 'express'
 import * as dotenv from 'dotenv'
 import cors from 'cors'
 import helmet from 'helmet'
+import morgan from 'morgan'
 
+// Needed for Babel:
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 
@@ -16,10 +18,14 @@ if (!process.env.PORT) {
   console.log('No PORT environment variable found!')
   process.exit(1)
 }
-
 const PORT: number = parseInt(process.env.PORT, 10)
 
 const app = express()
+
+if (process.env.LOGGING) {
+  app.use(morgan(process.env.LOGGING))
+}
+
 app.use(helmet())
 app.use(cors())
 app.use(express.json())
