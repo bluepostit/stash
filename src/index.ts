@@ -1,5 +1,4 @@
 import express from 'express'
-import * as dotenv from 'dotenv'
 import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'
@@ -7,12 +6,14 @@ import morgan from 'morgan'
 // Needed for Babel:
 import "core-js/stable";
 import "regenerator-runtime/runtime";
+import environment from './common/environment'
+
+// Setup environment:
+environment.setup()
 
 import { petsRouter } from './pets/pets.router'
 import { errorHandler } from './middleware/errors.middleware';
 import { notFoundHandler } from './middleware/not-found.middleware';
-
-dotenv.config()
 
 if (!process.env.PORT) {
   console.log('No PORT environment variable found!')
