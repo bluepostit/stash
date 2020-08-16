@@ -1,0 +1,20 @@
+[
+  {
+    "table": "items",
+    "data": [{
+      "id": 1,
+      "name": "Big green suitcase",
+      "description": "A little scratched; roomy"
+    }, {
+      "id": 2,
+      "name": "Ski gloves",
+      "description": "Red",
+      "parent_id": 1
+    }, {
+      "id": 3,
+      "name": "Bandana",
+      "description": "Purple paisley",
+      "parent_id": 1
+    }]
+  }
+]

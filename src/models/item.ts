@@ -1,4 +1,4 @@
-import { Model } from 'objection'
+import { Model, Modifiers } from 'objection'
 
 export default class Item extends Model {
   id!: number
@@ -36,9 +36,16 @@ export default class Item extends Model {
       relation: Model.HasManyRelation,
       modelClass: Item,
       join: {
-        from: 'persons.id',
-        to: 'persons.parent_id'
+        from: 'items.id',
+        to: 'items.parent_id'
       }
     }
   })
+
+  static modifiers: Modifiers = {
+    defaultSelects(query) {
+      query.select('id', 'name', 'description')
+        .withGraphFetched('[parent,children]')
+    }
+  }
 }

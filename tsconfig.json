@@ -16,14 +16,19 @@
     "forceConsistentCasingInFileNames": true,
     "declarationDir": "dist/types",
     "declaration": true,
-    "strict": true
+    "strict": true,
+    "baseUrl": "./",
+    "paths": {
+      "*": ["src/@types/*"]
+    }
   },
   "include": [
-    "./src/**/*", "src/config", "knexfile.ts"
+    "./src/**/*"
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "src/@types"
   ],
   "awesomeTypescriptLoaderOptions": {
     "useBabel": true,

@@ -1,0 +1,12 @@
+[
+  {
+    "table": "items",
+    "data": [{
+      "name": "Big green suitcase",
+      "description": "A little scratched; roomy"
+    }, {
+      "name": "Ski gloves",
+      "description": "Red"
+    }]
+  }
+]
