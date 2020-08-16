@@ -9,7 +9,7 @@ const TEST_COMMAND = 'mocha'
 const DEFAULT_TARGET = __dirname
 
 const debug = (() => {
-  const testNamespace = 'lyrix:test'
+  const testNamespace = 'stash:test'
   const debug = debugModule(testNamespace)
   debug.color = '12' // blue; see https://github.com/visionmedia/debug/issues/761
 
@@ -33,7 +33,7 @@ const test = (target: string, args?: string[]) => {
     if (args) {
       rest = args.map(r => r.replace(/\s/g, '\\ ')).join(' ')
     }
-    run(`${TEST_COMMAND} ${target}/**/*.spec.ts ${rest}`)
+    run(`${TEST_COMMAND} '${target}/**/*.spec.ts' ${rest}`)
   } catch (e) {
     console.log(e.message)
     exit(-1)
