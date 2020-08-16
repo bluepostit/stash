@@ -17,7 +17,7 @@
     "dev:server": "concurrently \"yarn webpack:watch\" \"yarn start:dev\"",
     "dev": "yarn run dev:server",
     "test": "NODE_ENV=test ts-node test/test.ts",
-    "test:watch": "NODE_ENV=test mocha -w --recursive 'test/**/*.spec.ts'"
+    "test:watch": "yarn run test -w"
   },
   "dependencies": {
     "bcrypt": "^5.0.0",
@@ -52,6 +52,7 @@
     "@types/pg": "^7.14.4",
     "@types/regenerator-runtime": "^0.13.0",
     "@types/should": "^13.0.0",
+    "@types/yargs": "^15.0.5",
     "awesome-typescript-loader": "^5.2.1",
     "babel-loader": "^8.1.0",
     "chai": "^4.2.0",
@@ -71,6 +72,7 @@
     "typescript": "^3.9.7",
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12",
-    "webpack-node-externals": "^2.5.1"
+    "webpack-node-externals": "^2.5.1",
+    "yargs": "^15.4.1"
   }
 }

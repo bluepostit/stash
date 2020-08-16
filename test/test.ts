@@ -1,12 +1,11 @@
 import { execSync } from 'child_process'
-import { exit } from 'process'
+import yargs from 'yargs'
 import { debug as debugModule } from 'debug'
 import '../src/config/environment'
 import '../src/config/knex'
 
 const MIGRATE_COMMAND = 'knex migrate:latest'
 const TEST_COMMAND = 'mocha'
-const DEFAULT_TARGET = __dirname
 
 const debug = (() => {
   const testNamespace = 'stash:test'
@@ -26,30 +25,47 @@ const run = (command: string) => {
   execSync(command, { stdio: 'inherit' })
 }
 
-const test = (target: string, args?: string[]) => {
-  try {
-    run(MIGRATE_COMMAND)
-    let rest = ''
-    if (args) {
-      rest = args.map(r => r.replace(/\s/g, '\\ ')).join(' ')
-    }
-    run(`${TEST_COMMAND} '${target}/**/*.spec.ts' ${rest}`)
-  } catch (e) {
-    console.log(e.message)
-    exit(-1)
-  }
-  debug('Tests complete.')
-}
-
-
 const main = () => {
-  const args = process.argv.slice(2)
-  if (args.length < 1) {
-    return test(DEFAULT_TARGET)
-  }
+  const argv = yargs
+    .usage('Usage: $0 [options]')
+    .example('$0 model', 'Run all tests in the `model` directory')
+    .example('$0 **/*.spec.ts', 'Run all tests matching this glob')
 
-  let [target, ...rest] = args
-  test(target, rest)
+    .alias('t', 'target')
+    .nargs('t', 1)
+    .default('target', '**/*.spec.ts')
+    .describe('t', 'Specify test target (file or directory)')
+
+    .boolean('w')
+    .alias('w', 'watch')
+    .describe('w', 'Watch files in the current working directory for changes')
+
+    .boolean('r')
+    .alias('r', 'recursive')
+    .default('r', true)
+    .describe('r', 'Look for tests in subdirectories')
+
+    .help('h')
+    .alias('h', 'help')
+    .argv
+
+  let target = argv.target || ''
+  let testCommand = TEST_COMMAND
+  if (argv.recursive) {
+    testCommand += ' --recursive'
+  }
+  if (argv.watch) {
+    testCommand += ' -w'
+  }
+  for (let letter of ['f', 'g', 's', 'c', 'a']) {
+    if (argv[letter]) {
+      testCommand += ` -${letter} '${argv[letter]}'`
+    }
+  }
+  testCommand += ` '${target}'`
+
+  run(MIGRATE_COMMAND)
+  run(testCommand)
 }
 
 main()
