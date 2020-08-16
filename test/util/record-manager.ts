@@ -1,14 +1,43 @@
 import path from 'path'
 import { Model } from 'objection'
 import fixtures from 'simple-knex-fixtures'
-import { dependencyOrder as Models } from '../../src/models'
-// import debug from './debug'
+import { dependencyOrder as Models, User } from '../../src/models'
+// @ts-ignore
+import debug from './debug'
 
 import knex from '../../src/config/knex'
 
 interface RecordManagerInterface {
   loadFixture (name: string): Promise<void>
   deleteAll(models?: typeof Model[]): Promise<void>
+  createUser(params?: UserData): Promise<User>
+}
+
+type UserData = {
+  id?: number
+  email?: string
+  password?: string
+}
+
+const DEFAULT_USER_DATA: UserData = {
+  email: 'person@record-manager.com',
+  password: '123456'
+}
+
+class TestUser extends User {
+  unencryptedPassword: string = ''
+  set unencryptePassword(value: string) {
+    this.unencryptePassword = value
+  }
+
+  static createFromUser(user: User) {
+    let testUser: TestUser = new TestUser()
+    testUser.id = user.id
+    testUser.email = user.email
+    testUser.password = user.password
+    testUser.name = user.name
+    return testUser
+  }
 }
 
 const RecordManager: RecordManagerInterface = class RecordManager {
@@ -28,6 +57,25 @@ const RecordManager: RecordManagerInterface = class RecordManager {
         .delete()
     }
   }
+
+  static async createUser(params?: UserData) {
+    // Needed to avoid sharing `data` between calls!
+    const data: UserData = { ...DEFAULT_USER_DATA }
+    if (params) {
+      data.id = params.id || data.id
+      data.email = params.email || data.email
+      data.password = params.password || data.password
+    }
+    // try {
+      const user: User = await User.query().insert(data)
+      const testUser = TestUser.createFromUser(user)
+      testUser.unencryptedPassword = (data.password as string)
+      return testUser
+    // } catch (err) {
+    //   debug(err)
+    //   throw err
+    // }
+  }
 }
 
-export default RecordManager
+export { RecordManager as default, TestUser }
