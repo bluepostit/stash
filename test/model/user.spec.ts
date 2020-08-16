@@ -23,6 +23,9 @@ describe('User', function () {
       await createUserWithPassword()
       expect(user).to.haveOwnProperty('id')
       expect(user.id).to.be.greaterThan(0)
+
+      const userCount = await User.query().resultSize()
+      expect(userCount).to.eql(1)
     })
 
     it('creates a user with a hashed password', async function () {
