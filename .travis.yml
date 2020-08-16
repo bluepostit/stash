@@ -1,0 +1,18 @@
+language: node_js
+node_js:
+  - 12
+dist: bionic
+addons:
+  postgresql: "11"
+  apt:
+    packages:
+      - postgresql-11
+      - postgresql-client-11
+services:
+  - postgresql
+env:
+  matrix:
+    - 'DB_HOST=localhost DB_TEST_NAME=travis_ci_test DB_TEST_USERNAME=postgres DB_TEST_PASSWORD='''' NODE_ENV=test'
+
+before_script:
+  - psql -c 'create database travis_ci_test;' -U postgres
