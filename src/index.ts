@@ -9,8 +9,10 @@ import "regenerator-runtime/runtime"
 
 import './config/environment'
 import './config/knex'
+import './config/authentication'
 
 import { petsRouter } from './pets/pets.router'
+import sessionsRouter from './controllers/authorization/sessions'
 import { errorHandler } from './middleware/errors.middleware';
 import { notFoundHandler } from './middleware/not-found.middleware';
 
@@ -32,6 +34,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 app.use('/pets', petsRouter)
+app.use('/sessions', sessionsRouter)
 
 app.use(errorHandler)
 app.use(notFoundHandler)
