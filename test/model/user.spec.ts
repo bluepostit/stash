@@ -1,59 +1,106 @@
-import chai, { expect } from 'chai'
-import chaiAsPromised from 'chai-as-promised'
-chai.use(chaiAsPromised)
-
+import mocker from 'mock-knex'
+import knex from '../../src/config/knex'
 import { User } from '../../src/models'
-import RecordManager from '../util/record-manager'
-// @ts-ignore declared but its value is never used
+// @ts-ignore
 import debug from '../util/debug'
 
 describe('User', function () {
-  const cleanup = async () => await RecordManager.deleteAll()
-  beforeEach(async () => cleanup())
-  after(async () => cleanup())
+  const tracker = mocker.getTracker()
+  beforeAll(() => {
+    mocker.mock(knex)
+  })
+  beforeEach(() => {
+    tracker.install()
+  })
+  afterEach(() => {
+    tracker.uninstall()
+  })
+  afterAll(() => {
+    mocker.unmock(knex)
+  })
 
   describe('Creating a User object', function () {
+
     let user: User
+    const email = 'test-user@stash.xyz'
     const password = '123456'
+
     const createUserWithPassword = async function () {
-      user = await RecordManager.createUser({ password })
+      tracker.on('query', (query) => {
+        query.response([{
+          id: 1,
+          email: 'test@test.com',
+        }])
+      })
+      user = await User
+        .query()
+        .insert({
+          email,
+          password
+        })
+      return user
     }
 
-    it('creates a user with an id', async function () {
+    test('creates a user with an id', async function () {
       await createUserWithPassword()
-      expect(user).to.haveOwnProperty('id')
-      expect(user.id).to.be.greaterThan(0)
+      expect(user).toHaveProperty('id')
+      expect(user.id).toBeGreaterThan(0)
 
+      tracker.uninstall()
+      tracker.install()
+      tracker.on('query', (query) => {
+        query.response([{
+          count: 1
+        }])
+      })
       const userCount = await User.query().resultSize()
-      expect(userCount).to.eql(1)
+      expect(userCount).toBe<number>(1)
     })
 
-    it('creates a user with a hashed password', async function () {
+    test('creates a user with a hashed password', async function () {
       await createUserWithPassword()
-      // Assert it has data that will help us test.
-      expect(user).to.haveOwnProperty('unencryptedPassword')
-      expect(user.password).not.to.be.eql(password)
+      expect(user.password).not.toBe(password)
       const matching = user.checkPassword(password)
-      return expect(matching).to.eventually.eql(true)
+      return expect(matching).resolves.toBe(true)
     })
 
-    it("shouldn't be created if the email format is invalid",
-      async function () {
-        const promise = RecordManager.createUser({ email: 'this.is.no.email' })
-        return expect(promise).to.be.rejectedWith(/email/i)
+    test("shouldn't be created if the email format is invalid",
+      async () => {
+        const insert = User.query().insert({
+          email: 'too.short',
+          password
+        })
+        expect.assertions(2)
+        await insert.catch(e => {
+          expect(e.name).toBe('ValidationError')
+          expect(e.message).toMatch(/email/i)
+        })
       })
 
-    it("shouldn't be created if the email is too short",
-      async function () {
-        const promise = RecordManager.createUser({ email: 'ab@cd.e' })
-        return expect(promise).to.be.rejectedWith(/email/i)
+    test("shouldn't be created if the email is too short",
+      async () => {
+        const insert = User.query().insert({
+          email: 'ab@cd.e',
+          password
+        })
+        expect.assertions(2)
+        await insert.catch(e => {
+          expect(e.name).toBe('ValidationError')
+          expect(e.message).toMatch(/email/i)
+        })
       })
 
-    it("shouldn't be created if the password is too short",
-    async function () {
-      const promise = RecordManager.createUser({ password: '12345' })
-      return expect(promise).to.eventually.be.rejectedWith(/password/i)
-        .and.have.property('name', 'ValidationError')
+    test("shouldn't be created if the password is too short",
+      async () => {
+        const insert = User.query().insert({
+          email,
+          password: '12345'
+        })
+        expect.assertions(2)
+        await insert.catch(e => {
+          expect(e.name).toBe('ValidationError')
+          expect(e.message).toMatch(/password.*short/i)
+        })
     })
   })
 })
