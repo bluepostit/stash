@@ -6,6 +6,10 @@ const plugin: FastifyPlugin = async (fastify, _options, next) => {
     return reply.code(200).send(['dog', 'cat'])
   })
 
+  fastify.get('/pets/:id', async (_request, _reply) => {
+    throw fastify.httpErrors.notImplemented()
+  })
+
   next()
 }
 

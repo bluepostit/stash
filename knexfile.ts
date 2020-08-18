@@ -1,8 +1,6 @@
 import path from 'path'
 import { ConnectionConfig } from 'knex'
-import './src/config/environment'
-
-const env = process.env
+import config from './src/config/'
 
 interface Config {
   [index: string]: {
@@ -15,10 +13,10 @@ const buildConfig = (name: string) => {
   return {
     client: 'postgresql',
     connection: {
-      database: env.DB_NAME || '',
-      host: env.DB_HOST || '',
-      user: env.DB_USER || '',
-      password: env.DB_PASSWORD || '',
+      database: config.get('DB_NAME') || '',
+      host: config.get('DB_HOST') || '',
+      user: config.get('DB_USER') || '',
+      password: config.get('DB_PASSWORD') || '',
     },
     pool: {
       min: 2,
@@ -36,10 +34,10 @@ const buildConfig = (name: string) => {
   }
 }
 
-const config: Config = {
+const knexConfig: Config = {
   development: buildConfig('development'),
   test: buildConfig('test')
 }
 
-export default config
-module.exports = config
+export default knexConfig
+module.exports = knexConfig
