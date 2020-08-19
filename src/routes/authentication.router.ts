@@ -45,7 +45,7 @@ const plugin: FastifyPlugin = async (fastify, _options, done) => {
           "Please check your credentials")
       }
       return {
-        message: "Not implemented yet",
+        message: "Login successful",
       }
     })
 
