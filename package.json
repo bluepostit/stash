@@ -32,8 +32,7 @@
     "make-promises-safe": "^5.1.0",
     "morgan": "^1.10.0",
     "objection": "^2.2.2",
-    "passport": "^0.4.1",
-    "passport-local": "^1.0.0",
+    "permit": "^0.2.4",
     "pg": "^8.3.0"
   },
   "devDependencies": {
@@ -52,8 +51,7 @@
     "@types/mock-knex": "^0.4.3",
     "@types/morgan": "^1.9.1",
     "@types/node": "^14.0.27",
-    "@types/passport": "^1.0.4",
-    "@types/passport-local": "^1.0.33",
+    "@types/permit": "^0.2.1",
     "@types/pg": "^7.14.4",
     "@types/pino": "^6.3.0",
     "@types/regenerator-runtime": "^0.13.0",

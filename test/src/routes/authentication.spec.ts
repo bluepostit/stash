@@ -15,6 +15,7 @@ describe("Authentication", () => {
   afterEach(() => {
     app.close()
   })
+
   describe("Login", () => {
     test("should return an error if no email is given", async () => {
       const res = await app.inject({
@@ -26,7 +27,8 @@ describe("Authentication", () => {
         },
       })
       logger.info(res.payload)
-      expect(res.statusCode).toBe(200)
+      expect(res.statusCode).toBe(400)
+      expect(res.payload).toMatch(/user-name/)
     })
 
     test.todo("should return an error if no password is given")
