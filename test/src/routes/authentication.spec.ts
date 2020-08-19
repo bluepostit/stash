@@ -22,16 +22,24 @@ describe("Authentication", () => {
         method: "POST",
         url: LOGIN_PATH,
         // headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        payload: {
-          password: '123456'
-        },
+        payload: { password: '123456' },
       })
       logger.info(res.payload)
       expect(res.statusCode).toBe(400)
       expect(res.payload).toMatch(/user-name/)
     })
 
-    test.todo("should return an error if no password is given")
+    test("should return an error if no password is given", async () => {
+      const res = await app.inject({
+        method: "POST",
+        url: LOGIN_PATH,
+        payload: { email: 'test@test.com' },
+      })
+      logger.info(res.payload)
+      expect(res.statusCode).toBe(400)
+      expect(res.payload).toMatch(/user-name/)
+    })
+
     test.todo("should return an error if incorrect password is given")
     test.todo("should return an error if no matching user is found")
     test.todo("should log user in successfully")
