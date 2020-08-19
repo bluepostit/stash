@@ -6,15 +6,23 @@ import { User } from '../../../src/models'
 describe("Authentication", () => {
   let app: FastifyInstance
   const LOGIN_PATH = '/login'
+  // @ts-ignore
   const logger = pino({
     prettyPrint: { colorize: true }
   })
 
-  beforeEach(() => {
+  const cleanupDb = async () => {
+    await app.db.User.query().delete()
+  }
+
+  beforeEach(async () => {
     app = build()
+    await app.listen(0)
+    cleanupDb()
   })
-  afterEach(() => {
+  afterEach(async () => {
     app.close()
+    cleanupDb()
   })
 
   describe("Login", () => {
@@ -44,7 +52,6 @@ describe("Authentication", () => {
 
     test("should return an error if incorrect password is given",
       async () => {
-        await app.listen(0)
         await (app.db.User as typeof User)
           .query().
           insert({
