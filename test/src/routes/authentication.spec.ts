@@ -102,7 +102,7 @@ describe('Authentication', () => {
     test('tells user if they are logged in already', async () => {
       await insertUser(email, password)
       const agent = supertest.agent(app.server)
-      const res = await agent.post(LOGIN_PATH)
+      await agent.post(LOGIN_PATH)
         .send({
           username: email,
           password,
