@@ -108,7 +108,7 @@ describe('Authentication', () => {
           password,
         })
         .expect(/success/i)
-        .expect('set-cookie', /stash/)
+        .expect('set-cookie', /.*/)
 
       await agent.post(LOGIN_PATH)
         .send({
