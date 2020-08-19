@@ -60,7 +60,7 @@ describe('Item', () => {
       expect(child.children).toHaveLength(0)
     })
 
-    test.only('can be removed from its parent Item', async () => {
+    test('can be removed from its parent Item', async () => {
       trackWith(fixtures.anItemCanBeRemovedFromItsParent)
 
       let items = await Item

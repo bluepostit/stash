@@ -1,5 +1,5 @@
-import { FastifyPlugin, FastifySchema } from "fastify"
-import fp from "fastify-plugin"
+import { FastifyPlugin, FastifySchema } from 'fastify'
+import fp from 'fastify-plugin'
 import { User } from '../models'
 
 interface LoginBody {
@@ -12,14 +12,14 @@ const schema: FastifySchema = {
     type: 'object',
     required: ['username', 'password'],
     properties: {
-      'username': {
-        type: 'string'
+      username: {
+        type: 'string',
       },
       password: {
-        type: 'string'
-      }
-    }
-  }
+        type: 'string',
+      },
+    },
+  },
 }
 
 declare module 'fastify' {
@@ -29,39 +29,53 @@ declare module 'fastify' {
 }
 
 const plugin: FastifyPlugin = async (fastify, _options, done) => {
-  fastify.post<{ Body: LoginBody }>("/login",
+  fastify.post<{ Body: LoginBody }>(
+    '/login',
     { schema },
     async (request, _reply) => {
       if (request.session.authenticated) {
         return {
-          message: 'You are already logged in'
+          message: 'You are already logged in',
         }
       }
       const { username: userName, password } = request.body
-      const UserClass = (fastify.db.User as typeof User)
-      const user = await UserClass
-        .query()
-        .findOne({
-          email: userName.trim()
-        })
+      const UserClass = fastify.db.User as typeof User
+      const user = await UserClass.query().findOne({
+        email: userName.trim(),
+      })
 
       if (!user) {
-        throw fastify.httpErrors.unauthorized(
-          'Please check your credentials')
+        throw fastify.httpErrors.unauthorized('Please check your credentials')
       }
 
       const correctPassword = await user.checkPassword(password)
       if (!correctPassword) {
-        throw fastify.httpErrors.unauthorized(
-          "Please check your credentials")
+        throw fastify.httpErrors.unauthorized('Please check your credentials')
       }
 
       request.session.authenticated = true
       request.user = user
       return {
-        message: "Login successful",
+        message: 'Login successful',
       }
+    }
+  )
+
+  /**
+   * Uses callback-style promises because of an inflexible API
+   * of fastify-session (request.destroySession)
+   */
+  fastify.get('/logout', (request, reply) => {
+    request.destroySession((err) => {
+      if (err) {
+        throw fastify.httpErrors.internalServerError()
+      }
+      reply.send({
+        message: 'Logout successful'
+      })
     })
+
+  })
 
   done()
 }

@@ -8,6 +8,11 @@ import { User } from '../../../src/models'
 describe('Authentication', () => {
   let app: FastifyInstance
   const LOGIN_PATH = '/login'
+  const LOGOUT_PATH = '/logout'
+
+  const TEST_EMAIL = 'auth.test@stash.xyz'
+  const TEST_PASSWORD = '123456'
+
   // @ts-ignore
   const logger = pino({
     prettyPrint: { colorize: true },
@@ -34,9 +39,6 @@ describe('Authentication', () => {
   })
 
   describe('Login', () => {
-    const email = 'auth.test@stash.xyz'
-    const password = '123456'
-
     test('returns an error if no email is given', async () => {
       const res = await app.inject({
         method: 'POST',
@@ -59,13 +61,13 @@ describe('Authentication', () => {
     })
 
     test('returns an error if incorrect password is given', async () => {
-      await insertUser(email, password)
+      await insertUser(TEST_EMAIL, TEST_PASSWORD)
       const res = await app.inject({
         method: 'POST',
         url: LOGIN_PATH,
         payload: {
-          username: email,
-          password: password + 'X',
+          username: TEST_EMAIL,
+          password: TEST_PASSWORD + 'X',
         },
       })
       expect(res.statusCode).toBe(401)
@@ -77,8 +79,8 @@ describe('Authentication', () => {
         method: 'POST',
         url: LOGIN_PATH,
         payload: {
-          username: email,
-          password: password,
+          username: TEST_EMAIL,
+          password: TEST_PASSWORD,
         },
       })
       expect(res.statusCode).toBe(401)
@@ -86,13 +88,13 @@ describe('Authentication', () => {
     })
 
     test('logs user in successfully', async () => {
-      await insertUser(email, password)
+      await insertUser(TEST_EMAIL, TEST_PASSWORD)
       const res = await app.inject({
         method: 'POST',
         url: LOGIN_PATH,
         payload: {
-          username: email,
-          password,
+          username: TEST_EMAIL,
+          password: TEST_PASSWORD,
         },
       })
       expect(res.statusCode).toBe(200)
@@ -100,23 +102,38 @@ describe('Authentication', () => {
     })
 
     test('tells user if they are logged in already', async () => {
-      await insertUser(email, password)
+      await insertUser(TEST_EMAIL, TEST_PASSWORD)
       const agent = supertest.agent(app.server)
-      await agent.post(LOGIN_PATH)
-        .send({
-          username: email,
-          password,
-        })
-        .expect(/success/i)
-        .expect('set-cookie', /.*/)
+      let res = await agent.post(LOGIN_PATH).send({
+        username: TEST_EMAIL,
+        password: TEST_PASSWORD,
+      })
+      expect(res.body.message).toMatch(/success/i)
+      expect(res.header['set-cookie'].length).toBeGreaterThan(0)
 
-      await agent.post(LOGIN_PATH)
-        .send({
-          username: email,
-          password,
-        })
-        .expect(200)
-        .expect(/already/i)
+      res = await agent.post(LOGIN_PATH).send({
+        username: TEST_EMAIL,
+        password: TEST_PASSWORD,
+      })
+      expect(res.status).toBe(200)
+      expect(res.body.message).toMatch(/already/i)
+    })
+  })
+
+  describe('Logout', () => {
+    test('successfully logs user out', async () => {
+      await insertUser(TEST_EMAIL, TEST_PASSWORD)
+      const agent = supertest.agent(app.server)
+      let res = await agent.post(LOGIN_PATH).send({
+        username: TEST_EMAIL,
+        password: TEST_PASSWORD,
+      })
+      expect(res.body.message).toMatch(/success/i)
+      expect(res.header['set-cookie'].length).toBeGreaterThan(0)
+
+      res = await agent.get(LOGOUT_PATH)
+      expect(res.status).toBe(200)
+      expect(res.body.message).toMatch(/success/i)
     })
   })
 })
