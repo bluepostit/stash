@@ -1,68 +1,73 @@
-import { expect } from 'chai'
+import mocker from 'mock-knex'
+import knex from '../../src/config/knex'
 import Item from '../../src/models/item'
-import RecordManager from '../util/record-manager'
-// import debug from '../util/debug'
+import * as fixtures from './item.spec.fixture'
+// @ts-ignore
+import debug from '../util/debug'
 
 describe('Item', () => {
-  beforeEach(async () => {
-    RecordManager.deleteAll()
+  const tracker = mocker.getTracker()
+  beforeAll(() => {
+    mocker.mock(knex)
+  })
+  beforeEach(() => {
+    tracker.install()
+  })
+  afterEach(() => {
+    tracker.uninstall()
+  })
+  afterAll(() => {
+    mocker.unmock(knex)
   })
 
-  after(async () => {
-    RecordManager.deleteAll()
-  })
-
-  describe('#constructor', () => {
-    it('should create an Item with an assigned id', async () => {
-      const guitar: Item = await Item
-        .query()
-        .insert({
-          name: 'Guitar',
-          description: 'Acoustic steel-string, slightly scratched'
-        })
-      expect(guitar.id).to.be.a('number')
+  const trackWith = (fixture: { [index: number]: object[] }) => {
+    tracker.on('query', (query, step) => {
+      let response: object[] = fixture[step - 1]
+      query.response(response)
     })
-  })
+  }
 
   describe('parents and children', () => {
-    it('can become a child of another Item', async () => {
-      await RecordManager.loadFixture('items/items.no-children')
-      let items = await Item.query()
-      let parentItem = items[0]
-      let childItem = items[1]
-      let [parentId, childId] = [parentItem.id, childItem.id]
+    test('can become a child of another Item', async () => {
+      trackWith(fixtures.anItemCanBecomeAChild)
+
+      const items = await Item.query()
+      let parent = items[0]
+      let child = items[1]
 
       // Associate them
-      await childItem
+      await child
         .$relatedQuery('parent')
-        .relate(parentItem)
+        .relate(parent)
 
-      parentItem = await Item
+      // Select them again, with associated children/parent items
+      parent = await Item
         .query()
-        .findById(parentId)
+        .findById(parent.id)
         .modify('defaultSelects')
-      childItem = await Item
+      child = await Item
         .query()
-        .findById(childId)
+        .findById(child.id)
         .modify('defaultSelects')
 
-      expect(parentItem.children).to.have.lengthOf(1)
+      expect(parent.children).toHaveLength(1)
       // @ts-ignore: Object is possibly 'undefined'
-      expect(parentItem.children[0].id).to.eql(childItem.id)
-      expect(parentItem.parent).to.eql(null)
-      expect(childItem.parent).to.be.an('object')
+      expect(parent.children[0].id).toBe(child.id)
+      expect(parent.parent).toBeNull()
+      expect(child.parent).toBeInstanceOf(Item)
       // @ts-ignore: Object is possibly 'undefined'
-      expect(childItem.parent.id).to.eql(parentItem.id)
-      expect(childItem.children).to.have.lengthOf(0)
+      expect(child.parent.id).toBe(parent.id)
+      expect(child.children).toHaveLength(0)
     })
 
-    it('can be removed from its parent Item', async () => {
-      await RecordManager.loadFixture('items/item.with-children')
+    test.only('can be removed from its parent Item', async () => {
+      trackWith(fixtures.anItemCanBeRemovedFromItsParent)
+
       let items = await Item
         .query()
         .modify('defaultSelects')
       let parent = items[0]
-      expect(parent).not.to.be.empty
+      expect(parent).not.toBeNull()
       const childCountBefore = (parent.children as Item[]).length
 
       // Remove an item from its parent
@@ -81,10 +86,10 @@ describe('Item', () => {
         .findById(child.id)
         .modify('defaultSelects')
 
-      // Check
+      // // Check
       expect((parent.children as Item[]).length)
-        .to.be.eql(childCountBefore - 1)
-      expect(child.parent).to.be.null
+        .toBe(childCountBefore - 1)
+      expect(child.parent).toBeNull()
     })
   })
 })

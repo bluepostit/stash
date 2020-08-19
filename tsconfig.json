@@ -28,7 +28,9 @@
   "exclude": [
     "node_modules",
     "dist",
-    "src/@types"
+    "src/@types",
+    "*.old*",
+    "./src/**/*.old.ts"
   ],
   "awesomeTypescriptLoaderOptions": {
     "useBabel": true,

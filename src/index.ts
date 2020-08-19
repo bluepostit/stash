@@ -1,46 +1,35 @@
-import express from 'express'
-import cors from 'cors'
-import helmet from 'helmet'
-import morgan from 'morgan'
+import fastify from 'fastify'
+import fastifySensible from 'fastify-sensible'
+import config from './config'
+import { default as db } from './plugins/objection'
+import petsRouter from './routes/pets.router'
+import itemsRouter from './routes/items.router'
 
-// Needed for Babel:
-import "core-js/stable"
-import "regenerator-runtime/runtime"
+const server = fastify({ logger: true })
 
-import './config/environment'
-import './config/knex'
-import './config/authentication'
+// Plugins
+server.register(fastifySensible)
+server.register(db)
 
-import { petsRouter } from './pets/pets.router'
-import sessionsRouter from './controllers/authorization/sessions'
-import { errorHandler } from './middleware/errors.middleware';
-import { notFoundHandler } from './middleware/not-found.middleware';
+// Routers
+server.register(petsRouter)
+server.register(itemsRouter)
 
-if (!process.env.PORT) {
-  console.log('No PORT environment variable found!')
-  process.exit(1)
-}
-const PORT: number = parseInt(process.env.PORT, 10)
+const port: number = (() => {
+  let port: any = config.get('PORT')
+  if (!port) {
+    throw new Error("No port is defined!");
+  }
+  port = parseInt(port, 10)
+  return port
+})()
 
-const app = express()
-
-if (process.env.LOGGING) {
-  app.use(morgan(process.env.LOGGING))
-}
-
-app.use(helmet())
-app.use(cors())
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
-
-app.use('/pets', petsRouter)
-app.use('/sessions', sessionsRouter)
-
-app.use(errorHandler)
-app.use(notFoundHandler)
-
-app.listen(PORT, () => {
-  console.log(`Server listening at port ${PORT}`)
+server.listen(port, (err, address) => {
+  if (err) {
+    console.error(err)
+    process.exit(1)
+  }
+  console.log(`Server listening at address ${address}`)
 })
 
-export default app
+export default server

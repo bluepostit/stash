@@ -23,4 +23,4 @@ const environment: Environment = {
   }
 }
 
-environment.setup()
+export default environment
