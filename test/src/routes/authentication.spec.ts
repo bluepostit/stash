@@ -4,6 +4,8 @@ import pino from 'pino'
 import supertest from 'supertest'
 import build from '../../../src/app'
 import { User } from '../../../src/models'
+// @ts-ignore
+import debug from '../../util/debug'
 
 describe('Authentication', () => {
   let app: FastifyInstance
@@ -35,7 +37,11 @@ describe('Authentication', () => {
 
   afterEach(async () => {
     cleanupDb()
-    app.close()
+    await app.close()
+  })
+
+  afterAll(async () => {
+    await app.db.knex.destroy()
   })
 
   describe('Login', () => {

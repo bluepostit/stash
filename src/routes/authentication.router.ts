@@ -39,7 +39,7 @@ const plugin: FastifyPlugin = async (fastify, _options, done) => {
         }
       }
       const { username: userName, password } = request.body
-      const UserClass = fastify.db.User as typeof User
+      const UserClass = fastify.db.models.User as typeof User
       const user = await UserClass.query().findOne({
         email: userName.trim(),
       })
@@ -74,7 +74,6 @@ const plugin: FastifyPlugin = async (fastify, _options, done) => {
         message: 'Logout successful'
       })
     })
-
   })
 
   done()
