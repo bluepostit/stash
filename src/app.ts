@@ -1,5 +1,11 @@
-import fastify from 'fastify'
+import fastify, { RegisterOptions } from 'fastify'
 import fastifySensible from "fastify-sensible";
+import fastifyCookie from 'fastify-cookie'
+import fastifyFormbody from 'fastify-formbody'
+import session from "fastify-session";
+require('make-promises-safe')
+
+import config from './config'
 import { default as db } from "./plugins/objection";
 import authRouter from './routes/authentication.router'
 import petsRouter from "./routes/pets.router";
@@ -10,6 +16,14 @@ function build(opts = {}) {
 
   // Plugins
   app.register(fastifySensible)
+  app.register(fastifyFormbody)
+  app.register(fastifyCookie)
+  const sessionOptions: session.Options & RegisterOptions = {
+    secret: config.get('COOKIE_SECRET') || '',
+    cookieName: '_stash_',
+    cookie: { secure: false },
+  }
+  app.register(session, sessionOptions)
   app.register(db)
 
   // Routers

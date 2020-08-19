@@ -22,10 +22,21 @@ const schema: FastifySchema = {
   }
 }
 
+declare module 'fastify' {
+  interface FastifyRequest {
+    user: User | undefined
+  }
+}
+
 const plugin: FastifyPlugin = async (fastify, _options, done) => {
   fastify.post<{ Body: LoginBody }>("/login",
     { schema },
     async (request, _reply) => {
+      if (request.session.authenticated) {
+        return {
+          message: 'You are already logged in'
+        }
+      }
       const { username: userName, password } = request.body
       const UserClass = (fastify.db.User as typeof User)
       const user = await UserClass
@@ -44,6 +55,9 @@ const plugin: FastifyPlugin = async (fastify, _options, done) => {
         throw fastify.httpErrors.unauthorized(
           "Please check your credentials")
       }
+
+      request.session.authenticated = true
+      request.user = user
       return {
         message: "Login successful",
       }

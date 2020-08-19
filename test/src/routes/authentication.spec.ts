@@ -1,5 +1,7 @@
 import { FastifyInstance } from 'fastify'
+// import LightMyRequest from 'light-my-request'
 import pino from 'pino'
+import supertest from 'supertest'
 import build from '../../../src/app'
 import { User } from '../../../src/models'
 
@@ -12,7 +14,12 @@ describe('Authentication', () => {
   })
 
   const cleanupDb = async () => {
-    await app.db.User.query().delete()
+    await User.query().delete()
+  }
+
+  const insertUser = async (email: string | null, password: string | null) => {
+    // @ts-ignore
+    return await User.query().insert({ email, password })
   }
 
   beforeEach(async () => {
@@ -20,9 +27,10 @@ describe('Authentication', () => {
     await app.listen(0)
     cleanupDb()
   })
+
   afterEach(async () => {
-    app.close()
     cleanupDb()
+    app.close()
   })
 
   describe('Login', () => {
@@ -51,10 +59,7 @@ describe('Authentication', () => {
     })
 
     test('returns an error if incorrect password is given', async () => {
-      await (app.db.User as typeof User).query().insert({
-        email,
-        password,
-      })
+      await insertUser(email, password)
       const res = await app.inject({
         method: 'POST',
         url: LOGIN_PATH,
@@ -81,24 +86,37 @@ describe('Authentication', () => {
     })
 
     test('logs user in successfully', async () => {
-      await(app.db.User as typeof User)
-        .query()
-        .insert({
-          email,
-          password,
-        })
+      await insertUser(email, password)
       const res = await app.inject({
         method: 'POST',
         url: LOGIN_PATH,
         payload: {
           username: email,
-          password
+          password,
         },
       })
       expect(res.statusCode).toBe(200)
       expect(res.body).toMatch(/success/i)
     })
 
-    test.todo('tells user if they are logged in already')
+    test('tells user if they are logged in already', async () => {
+      await insertUser(email, password)
+      const agent = supertest.agent(app.server)
+      const res = await agent.post(LOGIN_PATH)
+        .send({
+          username: email,
+          password,
+        })
+        .expect(/success/i)
+        .expect('set-cookie', /stash/)
+
+      await agent.post(LOGIN_PATH)
+        .send({
+          username: email,
+          password,
+        })
+        .expect(200)
+        .expect(/already/i)
+    })
   })
 })

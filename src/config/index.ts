@@ -3,12 +3,13 @@ import environment from './environment'
 environment.setup()
 
 const envKeys = [
+  'COOKIE_SECRET',
+  'DB_HOST',
+  'DB_NAME',
+  'DB_PASSWORD',
+  'DB_USER',
   'NODE_ENV',
   'PORT',
-  'DB_NAME',
-  'DB_HOST',
-  'DB_USER',
-  'DB_PASSWORD',
 ]
 const config = new Map<string, string>()
 for (let key of envKeys) {
