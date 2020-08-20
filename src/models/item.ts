@@ -1,4 +1,5 @@
 import { Model, Modifiers } from 'objection'
+import { User } from '.'
 
 export default class Item extends Model {
   id!: number
@@ -23,6 +24,15 @@ export default class Item extends Model {
   }
 
   static relationMappings = () => ({
+    user: {
+      relation: Model.BelongsToOneRelation,
+      modelClass: User,
+      join: {
+        from: 'items.user_id',
+        to: 'users.id'
+      }
+    },
+
     parent: {
       relation: Model.BelongsToOneRelation,
       modelClass: Item,

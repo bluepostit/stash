@@ -9,8 +9,9 @@ import knex from '../../src/config/knex'
 
 interface RecordManagerInterface {
   loadFixture (name: string): Promise<void>
-  deleteAll(models?: typeof Model[]): Promise<void>
-  createUser(params?: UserData): Promise<User>
+  loadFixture (name: string, namespace: string): Promise<void>
+  deleteAll (models?: typeof Model[]): Promise<void>
+  createUser (params?: UserData): Promise<TestUser>
 }
 
 type UserData = {
@@ -26,9 +27,6 @@ const DEFAULT_USER_DATA: UserData = {
 
 class TestUser extends User {
   unencryptedPassword: string = ''
-  set unencryptePassword(value: string) {
-    this.unencryptePassword = value
-  }
 
   static createFromUser(user: User) {
     let testUser: TestUser = new TestUser()
@@ -41,10 +39,13 @@ class TestUser extends User {
 }
 
 const RecordManager: RecordManagerInterface = class RecordManager {
-  static async loadFixture(name: string) {
-    const dirPrefix = path.join(__dirname, '../fixtures')
+  static async loadFixture(name: string, namespace?: string) {
+    let dirPrefix = path.join(__dirname, '..', 'fixtures')
+    if (namespace && namespace === 'routes') {
+      dirPrefix = path.join(__dirname, '..', 'src', 'routes')
+    }
     await fixtures.loadFile(
-      `${dirPrefix}/${name}.json`,
+      path.join(dirPrefix, `${name}.fixture.json`),
       knex
     )
   }
@@ -58,7 +59,7 @@ const RecordManager: RecordManagerInterface = class RecordManager {
     }
   }
 
-  static async createUser(params?: UserData) {
+  static async createUser(params?: UserData): Promise<TestUser> {
     // Needed to avoid sharing `data` between calls!
     const data: UserData = { ...DEFAULT_USER_DATA }
     if (params) {
