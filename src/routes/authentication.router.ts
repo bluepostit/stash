@@ -7,7 +7,13 @@ interface LoginBody {
   password: string
 }
 
-const schema: FastifySchema = {
+interface SignUpBody {
+  username: string
+  password: string
+  password2: string
+}
+
+const loginSchema: FastifySchema = {
   body: {
     type: 'object',
     required: ['username', 'password'],
@@ -22,6 +28,36 @@ const schema: FastifySchema = {
   },
 }
 
+const signUpSchema: FastifySchema = {
+  body: {
+    type: 'object',
+    required: ['username', 'password', 'password2'],
+    properties: {
+      username: {
+        type: 'string',
+        format: 'email',
+        minLength: 6,
+        maxLength: 120,
+      },
+      password: {
+        type: 'string',
+        minLength: 6,
+      },
+      password2: {
+        type: 'string',
+        minLength: 6,
+        const: { $data: '1/password' },
+        errorMessage: {
+          const: 'Passwords must match',
+        },
+      },
+    },
+  },
+  response: {
+    200: { $ref: 'messageResponse#' },
+  },
+}
+
 declare module 'fastify' {
   interface FastifyRequest {
     user: User | undefined
@@ -31,7 +67,7 @@ declare module 'fastify' {
 const plugin: FastifyPlugin = async (fastify, _options, done) => {
   fastify.post<{ Body: LoginBody }>(
     '/login',
-    { schema },
+    { schema: loginSchema },
     async (request, _reply) => {
       if (request.session.authenticated) {
         return {
@@ -71,10 +107,35 @@ const plugin: FastifyPlugin = async (fastify, _options, done) => {
         throw fastify.httpErrors.internalServerError()
       }
       reply.send({
-        message: 'Logout successful'
+        message: 'Logout successful',
       })
     })
   })
+
+  fastify.post<{ Body: SignUpBody }>(
+    '/sign-up',
+    { schema: signUpSchema },
+    async (request, _reply) => {
+      const { username: email, password } = request.body
+      const foundUser = await User.query().findOne({
+        email,
+      })
+      if (foundUser) {
+        throw fastify.httpErrors.badRequest(
+          'A user already exists with this user-name'
+        )
+      }
+
+      await User.query().insert({
+        email,
+        password
+      })
+
+      return {
+        message: 'Sign-up successful',
+      }
+    }
+  )
 
   done()
 }

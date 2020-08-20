@@ -4,7 +4,6 @@ import config from "./config"
 const server = build({
   logger: {
     level: "info",
-    prettyPrint: true,
   },
 })
 
