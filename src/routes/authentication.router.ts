@@ -44,8 +44,6 @@ const signUpSchema: FastifySchema = {
         minLength: 6,
       },
       password2: {
-        type: 'string',
-        minLength: 6,
         const: { $data: '1/password' },
         errorMessage: {
           const: 'Passwords must match',
