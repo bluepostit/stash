@@ -3,6 +3,7 @@ import fastifySensible from "fastify-sensible";
 import fastifyCookie from 'fastify-cookie'
 import fastifyFormbody from 'fastify-formbody'
 import session from "fastify-session";
+import helmet from 'fastify-helmet'
 require('make-promises-safe')
 
 import config from './config'
@@ -15,6 +16,7 @@ function build(opts = {}) {
   const app = fastify(opts)
 
   // Plugins
+  app.register(helmet)
   app.register(fastifySensible)
   app.register(fastifyFormbody)
   app.register(fastifyCookie)
