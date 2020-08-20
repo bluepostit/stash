@@ -27,15 +27,14 @@
     "fastify": "^3.2.0",
     "fastify-cookie": "^4.0.2",
     "fastify-formbody": "^4.0.3",
+    "fastify-helmet": "^5.0.0",
     "fastify-plugin": "^2.3.0",
     "fastify-sensible": "^3.0.1",
     "fastify-session": "^5.0.0",
-    "helmet": "^4.0.0",
     "knex": "^0.21.4",
     "make-promises-safe": "^5.1.0",
     "morgan": "^1.10.0",
     "objection": "^2.2.2",
-    "permit": "^0.2.4",
     "pg": "^8.3.0"
   },
   "devDependencies": {
@@ -54,13 +53,10 @@
     "@types/mock-knex": "^0.4.3",
     "@types/morgan": "^1.9.1",
     "@types/node": "^14.0.27",
-    "@types/permit": "^0.2.1",
     "@types/pg": "^7.14.4",
     "@types/pino": "^6.3.0",
     "@types/regenerator-runtime": "^0.13.0",
-    "@types/should": "^13.0.0",
     "@types/supertest": "^2.0.10",
-    "@types/yargs": "^15.0.5",
     "awesome-typescript-loader": "^5.2.1",
     "babel-jest": "^26.3.0",
     "babel-loader": "^8.1.0",
@@ -69,12 +65,10 @@
     "faker": "^4.1.0",
     "fork-ts-checker-webpack-plugin": "^5.0.14",
     "jest": "^26.4.0",
-    "light-my-request": "^4.0.2",
     "mock-knex": "^0.4.9",
     "pino": "^6.5.1",
     "pino-pretty": "^4.1.0",
     "regenerator-runtime": "^0.13.7",
-    "should": "^13.2.3",
     "simple-knex-fixtures": "^2.0.2",
     "source-map-loader": "^1.0.1",
     "supertest": "^4.0.2",
@@ -83,7 +77,6 @@
     "typescript": "^3.9.7",
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12",
-    "webpack-node-externals": "^2.5.1",
-    "yargs": "^15.4.1"
+    "webpack-node-externals": "^2.5.1"
   }
 }
