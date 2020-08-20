@@ -1,9 +1,0 @@
-{
-  "exit": true,
-  "recursive": true,
-  "require": [
-    "ts-node/register",
-    "./test/hooks.ts"
-  ],
-  "extension": ["ts"]
-}

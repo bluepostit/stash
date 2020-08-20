@@ -3,7 +3,7 @@ import fp from 'fastify-plugin'
 
 const plugin: FastifyPlugin = async (fastify, _options, done) => {
   fastify.get('/items', async (_request, _reply) => {
-    const itemCount = await fastify.db.Item.query().resultSize()
+    const itemCount = await fastify.db.models.Item.query().resultSize()
     return {
       message: 'Not implemented yet',
       items: itemCount

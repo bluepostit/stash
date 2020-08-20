@@ -11,8 +11,14 @@ addons:
 services:
   - postgresql
 env:
-  matrix:
-    - 'DB_HOST=localhost DB_TEST_NAME=travis_ci_test DB_TEST_USERNAME=postgres DB_TEST_PASSWORD='''' NODE_ENV=test'
+  matrix: >-
+    DB_HOST=localhost
+    DB_TEST_NAME=travis_ci_test
+    DB_TEST_USERNAME=postgres
+    DB_TEST_PASSWORD=''
+    NODE_ENV=test
+    COOKIE_SECRET='a long string that can keyboard cattle barge'
 
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
+  - knex migrate:latest

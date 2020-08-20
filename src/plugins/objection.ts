@@ -1,11 +1,15 @@
-import '../config/knex'
 import { FastifyPlugin } from 'fastify'
 import fp from 'fastify-plugin'
+import Knex from 'knex'
 import { Model } from 'objection'
+import knex from '../config/knex'
 import * as models from '../models'
 
 const plugin: FastifyPlugin = async (fastify, _options, _done) => {
-  fastify.decorate("db", models)
+  fastify.decorate("db", {
+    knex,
+    models
+  })
 }
 
 export default fp(plugin, {
@@ -15,7 +19,10 @@ export default fp(plugin, {
 declare module 'fastify' {
   interface FastifyInstance {
     db: {
-      [index: string]: typeof Model
+      knex: Knex
+      models: {
+        [index: string]: typeof Model
+      }
     }
   }
 }
