@@ -10,7 +10,7 @@ import knex from '../../src/config/knex'
 interface RecordManagerInterface {
   loadFixture (name: string): Promise<void>
   deleteAll(models?: typeof Model[]): Promise<void>
-  createUser(params?: UserData): Promise<User>
+  createUser(params?: UserData): Promise<TestUser>
 }
 
 type UserData = {
@@ -26,9 +26,6 @@ const DEFAULT_USER_DATA: UserData = {
 
 class TestUser extends User {
   unencryptedPassword: string = ''
-  set unencryptePassword(value: string) {
-    this.unencryptePassword = value
-  }
 
   static createFromUser(user: User) {
     let testUser: TestUser = new TestUser()
@@ -58,7 +55,7 @@ const RecordManager: RecordManagerInterface = class RecordManager {
     }
   }
 
-  static async createUser(params?: UserData) {
+  static async createUser(params?: UserData): Promise<TestUser> {
     // Needed to avoid sharing `data` between calls!
     const data: UserData = { ...DEFAULT_USER_DATA }
     if (params) {
