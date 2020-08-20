@@ -1,6 +1,4 @@
 import { FastifyInstance } from 'fastify'
-// import LightMyRequest from 'light-my-request'
-import pino from 'pino'
 import supertest from 'supertest'
 import build from '../../../src/app'
 import { User } from '../../../src/models'
@@ -14,11 +12,6 @@ describe('Authentication', () => {
 
   const TEST_EMAIL = 'auth.test@stash.xyz'
   const TEST_PASSWORD = '123456'
-
-  // @ts-ignore
-  const logger = pino({
-    prettyPrint: { colorize: true },
-  })
 
   const cleanupDb = async () => {
     await User.query().delete()
