@@ -9,8 +9,9 @@ import knex from '../../src/config/knex'
 
 interface RecordManagerInterface {
   loadFixture (name: string): Promise<void>
-  deleteAll(models?: typeof Model[]): Promise<void>
-  createUser(params?: UserData): Promise<TestUser>
+  loadFixture (name: string, namespace: string): Promise<void>
+  deleteAll (models?: typeof Model[]): Promise<void>
+  createUser (params?: UserData): Promise<TestUser>
 }
 
 type UserData = {
@@ -38,10 +39,13 @@ class TestUser extends User {
 }
 
 const RecordManager: RecordManagerInterface = class RecordManager {
-  static async loadFixture(name: string) {
-    const dirPrefix = path.join(__dirname, '../fixtures')
+  static async loadFixture(name: string, namespace?: string) {
+    let dirPrefix = path.join(__dirname, '..', 'fixtures')
+    if (namespace && namespace === 'routes') {
+      dirPrefix = path.join(__dirname, '..', 'src', 'routes')
+    }
     await fixtures.loadFile(
-      `${dirPrefix}/${name}.json`,
+      path.join(dirPrefix, `${name}.fixture.json`),
       knex
     )
   }

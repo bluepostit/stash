@@ -1,0 +1,18 @@
+[
+  {
+    "table": "items",
+    "data": [{
+      "id": 1,
+      "name": "Premium tennis racket",
+      "description": "Dark blue with red flames",
+      "parent_id": null,
+      "user_id": 1
+    },{
+      "id": 2,
+      "name": "Premium tennis racket",
+      "description": "Dark blue with red flames",
+      "parent_id": null,
+      "user_id": 1
+    }]
+  }
+]

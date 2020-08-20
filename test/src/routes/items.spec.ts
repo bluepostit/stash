@@ -50,8 +50,31 @@ describe('Items', () => {
       expect(res.body.items).toEqual([])
     })
 
-    test.todo("doesn't return other users' items")
+    test("doesn't return other users' items", async () => {
+      await RecordManager.loadFixture('items.with-user#1', 'routes')
+      const user = await RecordManager.createUser({ id: 2 })
+      const agent = await SessionManager.loginAsUser(app, user)
 
-    test.todo("returns a list of the user's items")
+      const res = await agent.get(ROOT_PATH)
+      expect(res.status).toBe(StatusCode.OK)
+      expect(res.body.items).toEqual([])
+    })
+
+    test("returns a list of the user's items", async () => {
+      const user = await RecordManager.createUser({ id: 1 })
+      await RecordManager.loadFixture('items.for-user#1.no-user-insert', 'routes')
+      const items = await Item.query()
+      const agent = await SessionManager.loginAsUser(app, user)
+
+      const res = await agent.get(ROOT_PATH)
+      expect(res.status).toBe(StatusCode.OK)
+      const resItems = (res.body.items as { [index: string]: any }[])
+      logger.info(resItems)
+      expect(resItems).toHaveLength(items.length)
+      // Check they have the same ids
+      const itemIds = items.map(i => i.id).sort()
+      const resItemIds = resItems.map(i => i.id).sort()
+      expect(itemIds).toEqual(resItemIds)
+    })
   })
 })
