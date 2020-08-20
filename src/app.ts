@@ -10,6 +10,7 @@ require('make-promises-safe')
 import config from './config'
 import { default as db } from "./plugins/objection";
 import schema from './plugins/schema'
+import auth from './plugins/authentication'
 import authRouter from './routes/authentication.router'
 import petsRouter from "./routes/pets.router";
 import itemsRouter from "./routes/items.router";
@@ -43,6 +44,7 @@ function build(opts: FastifyServerOptions = {}) {
   app.register(session, sessionOptions)
   app.register(db)
   app.register(schema)
+  app.register(auth)
 
   // Routers
   app.register(authRouter)

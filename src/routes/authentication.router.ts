@@ -67,7 +67,7 @@ const plugin: FastifyPlugin = async (fastify, _options, done) => {
     '/login',
     { schema: loginSchema },
     async (request, _reply) => {
-      if (request.session.authenticated) {
+      if (request.session.user) {
         return {
           message: 'You are already logged in',
         }
@@ -87,8 +87,7 @@ const plugin: FastifyPlugin = async (fastify, _options, done) => {
         throw fastify.httpErrors.unauthorized('Please check your credentials')
       }
 
-      request.session.authenticated = true
-      request.user = user
+      request.session.user = user
       return {
         message: 'Login successful',
       }

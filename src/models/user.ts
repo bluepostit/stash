@@ -9,6 +9,7 @@ export default class User extends Model {
   name!: string
   email!: string
   password!: string
+  items!: Item[]
 
   static tableName = 'users'
 
