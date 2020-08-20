@@ -8,6 +8,7 @@ const envKeys = [
   'DB_NAME',
   'DB_PASSWORD',
   'DB_USER',
+  'LEVEL',
   'NODE_ENV',
   'PORT',
 ]

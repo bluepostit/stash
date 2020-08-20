@@ -2,9 +2,8 @@ import { FastifyInstance } from 'fastify'
 import supertest from 'supertest'
 import build from '../../../src/app'
 import { Item, User } from '../../../src/models'
-import { insertUser, StatusCode } from '../../common'
 // @ts-ignore
-import debug from '../../util/debug'
+import { insertUser, StatusCode, logger } from '../../common'
 
 describe('Items', () => {
   let app: FastifyInstance
@@ -60,6 +59,7 @@ describe('Items', () => {
       // fetch items
       res = await agent.get(ROOT_PATH)
 
+      // logger.debug(res.body)
       expect(res.status).toBe(StatusCode.OK)
       expect(res.body.items).toEqual([])
     })

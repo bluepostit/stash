@@ -1,4 +1,4 @@
-import { StatusCode } from "./http-status-code";
+import StatusCode from "./http-status-code";
 
 interface ErrorResponse {
   error: string,
