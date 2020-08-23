@@ -107,9 +107,5 @@ describe('Items', () => {
       expect(res.status).toBe(StatusCode.NOT_FOUND)
       expect(res.body.message).toMatch(/found/i)
     })
-
-    test.todo('returns the item with parent and children')
-
-    test.todo('returns the item with 3 levels of parents')
   })
 })
