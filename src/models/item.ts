@@ -1,10 +1,11 @@
 import { Model, Modifiers } from 'objection'
-import { User } from '.'
+import { User, BelongsToUser } from '.'
 
-export default class Item extends Model {
+export default class Item extends Model implements BelongsToUser {
   id!: number
   name!: string
   description!: string
+  user_id!: number
 
   parent?: Item
   children?: Item[]
@@ -54,7 +55,7 @@ export default class Item extends Model {
 
   static modifiers: Modifiers = {
     defaultSelects(query) {
-      query.select('id', 'name', 'description')
+      query.select('id', 'name', 'description', 'user_id')
         .withGraphFetched('[parent,children]')
     }
   }
