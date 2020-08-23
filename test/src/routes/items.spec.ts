@@ -5,6 +5,7 @@ import RecordManager from '../../util/record-manager'
 import SessionManager from '../../util/session-manager'
 // @ts-ignore
 import { StatusCode, logger } from '../../common'
+import supertest from 'supertest'
 
 describe('Items', () => {
   let app: FastifyInstance
@@ -19,10 +20,6 @@ describe('Items', () => {
     await app.listen(0)
   })
 
-  beforeEach(async () => {
-    await cleanupDb()
-  })
-
   afterAll(async () => {
     await cleanupDb()
     await app.close()
@@ -30,7 +27,11 @@ describe('Items', () => {
   })
 
   describe('GET /', () => {
-    test('returns an error if not signed in', async () => {
+    beforeEach(async () => {
+      await cleanupDb()
+    })
+
+    it('returns an error if not signed in', async () => {
       const res = await app.inject({
         method: 'GET',
         url: ROOT_PATH,
@@ -38,7 +39,7 @@ describe('Items', () => {
       expect(res.statusCode).toBe(StatusCode.UNAUTHORIZED)
     })
 
-    test('returns an empty list if the user has no items', async () => {
+    it('returns an empty list if the user has no items', async () => {
       const user = await RecordManager.createUser()
       const agent = await SessionManager.loginAsUser(app, user)
 
@@ -49,7 +50,7 @@ describe('Items', () => {
       expect(res.body.items).toEqual([])
     })
 
-    test("doesn't return other users' items", async () => {
+    it("doesn't return other users' items", async () => {
       await RecordManager.loadFixture('items.with-user#1', 'routes')
       const user = await RecordManager.createUser({ id: 2 })
       const agent = await SessionManager.loginAsUser(app, user)
@@ -59,7 +60,7 @@ describe('Items', () => {
       expect(res.body.items).toEqual([])
     })
 
-    test("returns a list of the user's items", async () => {
+    it("returns a list of the user's items", async () => {
       const user = await RecordManager.createUser({ id: 1 })
       await RecordManager.loadFixture(
         'items.for-user#1.no-user-insert',
@@ -81,7 +82,11 @@ describe('Items', () => {
   })
 
   describe('GET /:id', () => {
-    test('returns an error when user is not signed in', async () => {
+    beforeEach(async () => {
+      await cleanupDb()
+    })
+
+    it('returns an error when user is not signed in', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `${ROOT_PATH}/1`,
@@ -89,7 +94,7 @@ describe('Items', () => {
       expect(res.statusCode).toBe(StatusCode.UNAUTHORIZED)
     })
 
-    test('returns an error when the item belongs to another user', async () => {
+    it('returns an error when the item belongs to another user', async () => {
       const user = await RecordManager.createUser({ id: 2 })
       await RecordManager.loadFixture('items.with-user#1', 'routes')
       const items = await Item.query()
@@ -99,7 +104,7 @@ describe('Items', () => {
       expect(res.status).toBe(StatusCode.FORBIDDEN)
     })
 
-    test('returns an error when the item does not exist', async () => {
+    it('returns an error when the item does not exist', async () => {
       const user = await RecordManager.createUser()
       const agent = await SessionManager.loginAsUser(app, user)
 
@@ -107,5 +112,51 @@ describe('Items', () => {
       expect(res.status).toBe(StatusCode.NOT_FOUND)
       expect(res.body.message).toMatch(/found/i)
     })
+  })
+
+  describe('POST /', () => {
+    it('returns an error when user is not signed in', async () => {
+      await cleanupDb()
+      const res = await app.inject({
+        method: 'POST',
+        url: ROOT_PATH,
+        payload: {
+          name: 'Acoustic guitar',
+          description: 'Emerald green with black leather strap',
+        },
+      })
+      expect(res.statusCode).toBe(StatusCode.UNAUTHORIZED)
+    })
+
+    describe.each`
+      name                 | desc                          | expectedStatus | expectedMessage
+      ${''}                | ${'Emerald green with strap'} | ${400}         | ${/name/}
+      ${'Acoustic guitar'} | ${''}                         | ${400}         | ${/description/}
+      ${'Acoustic guitar'} | ${'Emerald green with strap'} | ${200}         | ${''}
+    `(
+      'creating new Item returns the expected results',
+      ({ name, desc, expectedStatus, expectedMessage }) => {
+        let agent: supertest.SuperAgentTest
+        beforeAll(async () => {
+          await cleanupDb()
+          const user = await RecordManager.createUser()
+          agent = await SessionManager.loginAsUser(app, user)
+        })
+
+        test('returns $expectedStatus when given $name, $desc for name and description', async () => {
+          const res = await agent.post(ROOT_PATH).send({
+            name: name,
+            description: desc,
+          })
+          expect(res.status).toBe(expectedStatus)
+          if (expectedStatus != 200) {
+            expect(res.body.message).toMatch(expectedMessage)
+          } else {
+            expect(res.body.item.name).toEqual(name)
+            expect(res.body.item.description).toEqual(desc)
+          }
+        })
+      }
+    )
   })
 })
