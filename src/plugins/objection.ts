@@ -10,7 +10,7 @@ interface RequestWithId {
 }
 
 const plugin: FastifyPlugin = async (fastify, _options, _done) => {
-  const setEntity = (entityClass: typeof Model) => {
+  const buildSetEntity = (entityClass: typeof Model) => {
     const fn: preHandlerHookHandler = async (request, _reply, done) => {
       const params = request.params as RequestWithId
       if (!params || !params.id) {
@@ -41,7 +41,7 @@ const plugin: FastifyPlugin = async (fastify, _options, _done) => {
   fastify.decorate('db', {
     knex,
     models,
-    setEntity,
+    buildSetEntity,
   })
 }
 
@@ -66,7 +66,7 @@ declare module 'fastify' {
        * @param entityClass the class of the entity to use when retrieving
        * @returns preHandler hook function, curried to use `entityClass`
        */
-      setEntity(entityClass: typeof Model): preHandlerHookHandler
+      buildSetEntity(entityClass: typeof Model): preHandlerHookHandler
     }
   }
 
