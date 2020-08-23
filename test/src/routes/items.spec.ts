@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify'
 import build from '../../../src/app'
-import { Item, User } from '../../../src/models'
+import { Item } from '../../../src/models'
 import RecordManager from '../../util/record-manager'
 import SessionManager from '../../util/session-manager'
 // @ts-ignore
@@ -11,22 +11,21 @@ describe('Items', () => {
   const ROOT_PATH = '/items'
 
   const cleanupDb = async () => {
-    await Item.query().delete()
-    await User.query().delete()
+    await RecordManager.deleteAll()
   }
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     app = build({ logger: { level: 'error' } })
     await app.listen(0)
-    cleanupDb()
   })
 
-  afterEach(async () => {
-    cleanupDb()
-    await app.close()
+  beforeEach(async () => {
+    await cleanupDb()
   })
 
   afterAll(async () => {
+    await cleanupDb()
+    await app.close()
     await app.db.knex.destroy()
   })
 
@@ -69,12 +68,30 @@ describe('Items', () => {
       const res = await agent.get(ROOT_PATH)
       expect(res.status).toBe(StatusCode.OK)
       const resItems = (res.body.items as { [index: string]: any }[])
-      logger.info(resItems)
+
       expect(resItems).toHaveLength(items.length)
       // Check they have the same ids
       const itemIds = items.map(i => i.id).sort()
       const resItemIds = resItems.map(i => i.id).sort()
       expect(itemIds).toEqual(resItemIds)
     })
+  })
+
+  describe('GET /:id', () => {
+    test('returns an error when user is not signed in', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `${ROOT_PATH}/1`,
+      })
+      expect(res.statusCode).toBe(StatusCode.UNAUTHORIZED)
+    })
+
+    test.todo('returns an error when the item belongs to another user')
+
+    test.todo('returns an error when the item does not exist')
+
+    test.todo('returns the item with parent and children')
+
+    test.todo('returns the item with 3 levels of parents')
   })
 })

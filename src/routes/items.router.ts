@@ -17,6 +17,14 @@ const plugin: FastifyPlugin = async (fastify, _options, done) => {
     }
   })
 
+  fastify.get('/items/:id',
+  {
+    preHandler: fastify.auth.mustBeSignedIn
+  },
+  async (request, _reply) => {
+    console.log(request)
+  })
+
   done()
 }
 
