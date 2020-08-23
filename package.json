@@ -16,7 +16,7 @@
     "start:dev": "nodemon src/server.ts",
     "dev:server": "concurrently \"yarn webpack:watch\" \"yarn start:dev\"",
     "dev": "yarn run dev:server",
-    "test": "jest",
+    "test": "jest --runInBand",
     "test:watch": "yarn run test --watch"
   },
   "dependencies": {

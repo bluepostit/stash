@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify'
 import build from '../../../src/app'
-import { Item, User } from '../../../src/models'
+import { Item } from '../../../src/models'
 import RecordManager from '../../util/record-manager'
 import SessionManager from '../../util/session-manager'
 // @ts-ignore
@@ -11,22 +11,21 @@ describe('Items', () => {
   const ROOT_PATH = '/items'
 
   const cleanupDb = async () => {
-    await Item.query().delete()
-    await User.query().delete()
+    await RecordManager.deleteAll()
   }
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     app = build({ logger: { level: 'error' } })
     await app.listen(0)
-    cleanupDb()
   })
 
-  afterEach(async () => {
-    cleanupDb()
-    await app.close()
+  beforeEach(async () => {
+    await cleanupDb()
   })
 
   afterAll(async () => {
+    await cleanupDb()
+    await app.close()
     await app.db.knex.destroy()
   })
 
@@ -62,19 +61,51 @@ describe('Items', () => {
 
     test("returns a list of the user's items", async () => {
       const user = await RecordManager.createUser({ id: 1 })
-      await RecordManager.loadFixture('items.for-user#1.no-user-insert', 'routes')
+      await RecordManager.loadFixture(
+        'items.for-user#1.no-user-insert',
+        'routes'
+      )
       const items = await Item.query()
       const agent = await SessionManager.loginAsUser(app, user)
 
       const res = await agent.get(ROOT_PATH)
       expect(res.status).toBe(StatusCode.OK)
-      const resItems = (res.body.items as { [index: string]: any }[])
-      logger.info(resItems)
+      const resItems = res.body.items as { [index: string]: any }[]
+
       expect(resItems).toHaveLength(items.length)
       // Check they have the same ids
-      const itemIds = items.map(i => i.id).sort()
-      const resItemIds = resItems.map(i => i.id).sort()
+      const itemIds = items.map((i) => i.id).sort()
+      const resItemIds = resItems.map((i) => i.id).sort()
       expect(itemIds).toEqual(resItemIds)
+    })
+  })
+
+  describe('GET /:id', () => {
+    test('returns an error when user is not signed in', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `${ROOT_PATH}/1`,
+      })
+      expect(res.statusCode).toBe(StatusCode.UNAUTHORIZED)
+    })
+
+    test('returns an error when the item belongs to another user', async () => {
+      const user = await RecordManager.createUser({ id: 2 })
+      await RecordManager.loadFixture('items.with-user#1', 'routes')
+      const items = await Item.query()
+      const agent = await SessionManager.loginAsUser(app, user)
+
+      const res = await agent.get(`${ROOT_PATH}/${items[0].id}`)
+      expect(res.status).toBe(StatusCode.FORBIDDEN)
+    })
+
+    test('returns an error when the item does not exist', async () => {
+      const user = await RecordManager.createUser()
+      const agent = await SessionManager.loginAsUser(app, user)
+
+      const res = await agent.get(`${ROOT_PATH}/1`)
+      expect(res.status).toBe(StatusCode.NOT_FOUND)
+      expect(res.body.message).toMatch(/found/i)
     })
   })
 })

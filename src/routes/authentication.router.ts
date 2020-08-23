@@ -56,12 +56,6 @@ const signUpSchema: FastifySchema = {
   },
 }
 
-declare module 'fastify' {
-  interface FastifyRequest {
-    user: User | undefined
-  }
-}
-
 const plugin: FastifyPlugin = async (fastify, _options, done) => {
   fastify.post<{ Body: LoginBody }>(
     '/login',
