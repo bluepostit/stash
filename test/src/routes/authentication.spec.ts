@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify'
 import supertest from 'supertest'
 import build from '../../../src/app'
 import { User } from '../../../src/models'
+import RecordManager from '../../util/record-manager'
 // @ts-ignore
 import debug from '../../util/debug'
 
@@ -15,7 +16,7 @@ describe('Authentication', () => {
   const TEST_PASSWORD = '123456'
 
   const cleanupDb = async () => {
-    await User.query().delete()
+    await RecordManager.deleteAll()
   }
 
   const insertUser = async (email: string | null, password: string | null) => {
@@ -23,18 +24,17 @@ describe('Authentication', () => {
     return await User.query().insert({ email, password })
   }
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     app = build()
     await app.listen(0)
-    cleanupDb()
   })
 
-  afterEach(async () => {
-    cleanupDb()
-    await app.close()
+  beforeEach(async () => {
+    await cleanupDb()
   })
 
   afterAll(async () => {
+    await app.close()
     await app.db.knex.destroy()
   })
 
