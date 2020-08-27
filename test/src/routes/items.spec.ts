@@ -16,6 +16,7 @@ describe('Items', () => {
   }
 
   beforeAll(async () => {
+    await cleanupDb()
     app = build({ logger: { level: 'error' } })
     await app.listen(0)
   })
@@ -63,7 +64,7 @@ describe('Items', () => {
     it("returns a list of the user's items", async () => {
       const user = await RecordManager.createUser({ id: 1 })
       await RecordManager.loadFixture(
-        'items.for-user#1.no-user-insert',
+        'items.for-user#1',
         'routes'
       )
       const items = await Item.query()
@@ -132,7 +133,7 @@ describe('Items', () => {
       name                 | desc                          | expectedStatus | expectedMessage
       ${''}                | ${'Emerald green with strap'} | ${400}         | ${/name/}
       ${'Acoustic guitar'} | ${''}                         | ${400}         | ${/description/}
-      ${'Acoustic guitar'} | ${'Emerald green with strap'} | ${200}         | ${''}
+      ${'Acoustic guitar'} | ${'Emerald green with strap'} | ${201}         | ${''}
     `(
       'creating new Item returns the expected results',
       ({ name, desc, expectedStatus, expectedMessage }) => {
@@ -149,7 +150,7 @@ describe('Items', () => {
             description: desc,
           })
           expect(res.status).toBe(expectedStatus)
-          if (expectedStatus != 200) {
+          if (expectedStatus != 201) {
             expect(res.body.message).toMatch(expectedMessage)
           } else {
             expect(res.body.item.name).toEqual(name)
@@ -158,5 +159,55 @@ describe('Items', () => {
         })
       }
     )
+  })
+
+  describe('PUT /:id', () => {
+    beforeEach(async () => {
+      await cleanupDb()
+    })
+
+    it('returns an error if user is not signed in', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: `${ROOT_PATH}/1`,
+        payload: {
+          name: 'Acoustic guitar',
+          description: 'Emerald green with black leather strap',
+        },
+      })
+      expect(res.statusCode).toBe(StatusCode.UNAUTHORIZED)
+    })
+
+    it('returns an error if item belongs to another user', async () => {
+      const user = await RecordManager.createUser({ id: 2 })
+      await RecordManager.loadFixture('items.with-user#1', 'routes')
+      const item = await Item.query().first()
+
+      const agent = await SessionManager.loginAsUser(app, user)
+      const details = {
+        name: 'Acoustic guitar',
+        description: 'Emerald green with black leather strap',
+      }
+      const res = await agent
+        .put(`${ROOT_PATH}/${item.id}`)
+        .send(details)
+      expect(res.status).toBe(StatusCode.FORBIDDEN)
+    })
+
+    it('updates item with values from the request', async () => {
+      const user = await RecordManager.createUser({ id: 1 })
+      await RecordManager.loadFixture('items.for-user#1', 'routes')
+      const item = await Item.query().first()
+
+      const agent = await SessionManager.loginAsUser(app, user)
+      const details = {
+        name: 'A very new name after update',
+        description: 'A very new description after update',
+      }
+      const res = await agent
+        .put(`${ROOT_PATH}/${item.id}`)
+        .send(details)
+      expect(res.status).toBe(StatusCode.OK)
+    })
   })
 })
