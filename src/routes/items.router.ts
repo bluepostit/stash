@@ -1,27 +1,20 @@
-import { FastifyPlugin, FastifySchema } from 'fastify'
+import { FastifyPlugin } from 'fastify'
 import fp from 'fastify-plugin'
 import { Item, User } from '../models'
+import StatusCode from '../common/http-status-code'
 
 interface CreateItemBody {
   name: string
   description: string
 }
 
-const createItemSchema: FastifySchema = {
-  body: {
-    type: 'object',
-    required: ['name', 'description'],
-    properties: {
-      name: {
-        type: 'string',
-        minLength: 6
-      },
-      description: {
-        type: 'string',
-        minLength: 6
-      },
-    },
-  },
+const createItemSchema = {
+  body: { $ref: 'createItem#body' },
+  response: {
+    '2xx': {
+      $ref: 'createItem#response'
+    }
+  }
 }
 
 const plugin: FastifyPlugin = async (fastify, _options, done) => {
@@ -67,7 +60,7 @@ const plugin: FastifyPlugin = async (fastify, _options, done) => {
       ],
       schema: createItemSchema
     },
-    async (request, _reply) => {
+    async (request, reply) => {
       const { name, description } = request.body
       const item = await request.session.user
         .$relatedQuery('items')
@@ -76,7 +69,29 @@ const plugin: FastifyPlugin = async (fastify, _options, done) => {
           description,
         })
         .modify('defaultSelects')
-      return { item }
+      reply.code(StatusCode.CREATED)
+      reply.send({ item })
+    }
+  )
+
+  fastify.put<{ Body: CreateItemBody }>(
+    `${ROOT_PATH}/:id`,
+    {
+      preHandler: [
+        fastify.auth.mustBeSignedIn,
+        setEntity,
+        fastify.auth.authorizeEntity,
+      ],
+      schema: createItemSchema,
+    },
+    async (request, reply) => {
+      const { name, description } = request.body
+      const item = request.entity as Item
+      await item.$query().update({
+        name,
+        description
+      })
+      reply.send({ item })
     }
   )
 

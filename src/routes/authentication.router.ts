@@ -14,43 +14,11 @@ interface SignUpBody {
 }
 
 const loginSchema: FastifySchema = {
-  body: {
-    type: 'object',
-    required: ['username', 'password'],
-    properties: {
-      username: {
-        type: 'string',
-      },
-      password: {
-        type: 'string',
-      },
-    },
-  },
+  body: { $ref: 'loginRequestBody#' },
 }
 
 const signUpSchema: FastifySchema = {
-  body: {
-    type: 'object',
-    required: ['username', 'password', 'password2'],
-    properties: {
-      username: {
-        type: 'string',
-        format: 'email',
-        minLength: 6,
-        maxLength: 120,
-      },
-      password: {
-        type: 'string',
-        minLength: 6,
-      },
-      password2: {
-        const: { $data: '1/password' },
-        errorMessage: {
-          const: 'Passwords must match',
-        },
-      },
-    },
-  },
+  body: { $ref: 'signUpRequestBody#' },
   response: {
     200: { $ref: 'messageResponse#' },
   },
