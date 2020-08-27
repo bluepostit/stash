@@ -210,4 +210,48 @@ describe('Items', () => {
       expect(res.status).toBe(StatusCode.OK)
     })
   })
+
+  describe('DELETE /:id', () => {
+    beforeEach(async () => {
+      await cleanupDb()
+    })
+
+    it('returns an error if user is not signed in', async () => {
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `${ROOT_PATH}/1`,
+        payload: {
+          name: 'Acoustic guitar',
+          description: 'Emerald green with black leather strap',
+        },
+      })
+      expect(res.statusCode).toBe(StatusCode.UNAUTHORIZED)
+    })
+
+    it('returns an error if item belongs to another user', async () => {
+      const user = await RecordManager.createUser({ id: 2 })
+      await RecordManager.loadFixture('items.with-user#1', 'routes')
+      const item = await Item.query().first()
+
+      const agent = await SessionManager.loginAsUser(app, user)
+      const res = await agent
+        .delete(`${ROOT_PATH}/${item.id}`)
+      expect(res.status).toBe(StatusCode.FORBIDDEN)
+    })
+
+    it('deletes the given item', async () => {
+      const user = await RecordManager.createUser({ id: 1 })
+      await RecordManager.loadFixture('items.for-user#1', 'routes')
+      const beforeItemCount = await Item.query().resultSize()
+      const item = await Item.query().first()
+
+      const agent = await SessionManager.loginAsUser(app, user)
+      const res = await agent
+        .delete(`${ROOT_PATH}/${item.id}`)
+      expect(res.status).toBe(StatusCode.NO_CONTENT)
+
+      const afterItemCount = await Item.query().resultSize()
+      expect(afterItemCount).toEqual(beforeItemCount - 1)
+    })
+  })
 })

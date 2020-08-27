@@ -12,13 +12,16 @@ const createItemSchema = {
   body: { $ref: 'createItem#body' },
   response: {
     '2xx': {
-      $ref: 'createItem#response'
-    }
-  }
+      $ref: 'createItem#response',
+    },
+  },
 }
 
 const plugin: FastifyPlugin = async (fastify, _options, done) => {
   const ROOT_PATH = '/items'
+  // Returns a preHandler function
+  const setEntity = fastify.db.buildSetEntity(Item)
+
   fastify.get(
     ROOT_PATH,
     {
@@ -32,9 +35,6 @@ const plugin: FastifyPlugin = async (fastify, _options, done) => {
       }
     }
   )
-
-  // Returns a preHandler function
-  const setEntity = fastify.db.buildSetEntity(Item)
 
   fastify.get(
     `${ROOT_PATH}/:id`,
@@ -52,13 +52,32 @@ const plugin: FastifyPlugin = async (fastify, _options, done) => {
     }
   )
 
-  fastify.post<{ Body: CreateItemBody }>(
-    ROOT_PATH,
+  fastify.delete(
+    `${ROOT_PATH}/:id`,
     {
       preHandler: [
-        fastify.auth.mustBeSignedIn
+        fastify.auth.mustBeSignedIn,
+        setEntity,
+        fastify.auth.authorizeEntity,
       ],
-      schema: createItemSchema
+    },
+    async (request, reply) => {
+      await (request.entity as Item)
+        .$query()
+        .delete()
+      reply.code(StatusCode.NO_CONTENT)
+      reply.send()
+    }
+  )
+
+
+  fastify.post<{
+    Body: CreateItemBody
+  }>(
+    ROOT_PATH,
+    {
+      preHandler: [fastify.auth.mustBeSignedIn],
+      schema: createItemSchema,
     },
     async (request, reply) => {
       const { name, description } = request.body
@@ -70,11 +89,15 @@ const plugin: FastifyPlugin = async (fastify, _options, done) => {
         })
         .modify('defaultSelects')
       reply.code(StatusCode.CREATED)
-      reply.send({ item })
+      reply.send({
+        item,
+      })
     }
   )
 
-  fastify.put<{ Body: CreateItemBody }>(
+  fastify.put<{
+    Body: CreateItemBody
+  }>(
     `${ROOT_PATH}/:id`,
     {
       preHandler: [
@@ -89,9 +112,11 @@ const plugin: FastifyPlugin = async (fastify, _options, done) => {
       const item = request.entity as Item
       await item.$query().update({
         name,
-        description
+        description,
       })
-      reply.send({ item })
+      reply.send({
+        item,
+      })
     }
   )
 
