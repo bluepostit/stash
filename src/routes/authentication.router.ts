@@ -1,4 +1,4 @@
-import { FastifyPlugin, FastifySchema } from 'fastify'
+import { FastifyPluginCallback, FastifySchema } from 'fastify'
 import fp from 'fastify-plugin'
 import { User } from '../models'
 
@@ -24,7 +24,7 @@ const signUpSchema: FastifySchema = {
   },
 }
 
-const plugin: FastifyPlugin = async (fastify, _options, done) => {
+const plugin: FastifyPluginCallback = async (fastify, _options, done) => {
   fastify.post<{ Body: LoginBody }>(
     '/login',
     { schema: loginSchema },
