@@ -1,4 +1,4 @@
-import { FastifyPlugin } from 'fastify'
+import { FastifyPluginCallback } from 'fastify'
 import fp from 'fastify-plugin'
 import { Item, User } from '../models'
 import StatusCode from '../common/http-status-code'
@@ -17,7 +17,7 @@ const createItemSchema = {
   },
 }
 
-const plugin: FastifyPlugin = async (fastify, _options, done) => {
+const plugin: FastifyPluginCallback = async (fastify, _options, done) => {
   const ROOT_PATH = '/items'
   // Returns a preHandler function
   const setEntity = fastify.db.buildSetEntity(Item)

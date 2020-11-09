@@ -1,7 +1,7 @@
-import { FastifyPlugin } from "fastify";
+import { FastifyPluginCallback } from "fastify";
 import { default as fp } from 'fastify-plugin'
 
-const plugin: FastifyPlugin = async (fastify, _options, next) => {
+const plugin: FastifyPluginCallback = async (fastify, _options, next) => {
   fastify.get('/pets', async (_request, reply) => {
     return reply.code(200).send(['dog', 'cat'])
   })
