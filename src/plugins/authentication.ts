@@ -1,8 +1,8 @@
-import { FastifyPlugin, preHandlerHookHandler } from 'fastify'
+import { FastifyPluginCallback, preHandlerHookHandler } from 'fastify'
 import fp from 'fastify-plugin'
 import { User, BelongsToUser } from '../models'
 
-const plugin: FastifyPlugin = (fastify, _options, done) => {
+const plugin: FastifyPluginCallback = (fastify, _options, done) => {
   const mustBeSignedIn: preHandlerHookHandler = (request, _reply, done) => {
     if (!request.session.user) {
       const error = fastify.httpErrors.unauthorized('You must sign in first')
