@@ -1,7 +1,7 @@
-import { FastifyPlugin } from 'fastify'
+import { FastifyPluginCallback } from 'fastify'
 import fp from 'fastify-plugin'
 
-const plugin: FastifyPlugin = async (fastify, _options, done) => {
+const plugin: FastifyPluginCallback = async (fastify, _options, done) => {
   fastify.addSchema({
     $id: 'messageResponse',
     type: 'object',

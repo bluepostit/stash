@@ -1,4 +1,4 @@
-import { FastifyPlugin, preHandlerHookHandler } from 'fastify'
+import { FastifyPluginCallback, preHandlerHookHandler } from 'fastify'
 import fp from 'fastify-plugin'
 import Knex from 'knex'
 import { Model } from 'objection'
@@ -9,7 +9,7 @@ interface RequestWithId {
   id: number
 }
 
-const plugin: FastifyPlugin = async (fastify, _options, _done) => {
+const plugin: FastifyPluginCallback = async (fastify, _options, _done) => {
   const buildSetEntity = (entityClass: typeof Model) => {
     const fn: preHandlerHookHandler = async (request, _reply, done) => {
       const params = request.params as RequestWithId
