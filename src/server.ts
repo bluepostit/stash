@@ -4,6 +4,9 @@ import config from "./config"
 const server = build({
   logger: {
     level: "info",
+    // @ts-ignore
+    file: "/tmp/stash-log.log",
+    prettyPrint: true
   },
 })
 

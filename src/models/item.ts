@@ -7,8 +7,8 @@ export default class Item extends Model implements BelongsToUser {
   description!: string
   user_id!: number
 
-  parent?: Item
-  children?: Item[]
+  parent!: Item | null
+  children!: Item[]
 
   static tableName = 'items'
 

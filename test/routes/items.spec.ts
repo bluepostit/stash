@@ -1,10 +1,9 @@
 import { FastifyInstance } from 'fastify'
-import build from '../../src/app'
 import { Item } from '../../src/models'
 import RecordManager from '../util/record-manager'
 import SessionManager from '../util/session-manager'
 // @ts-ignore
-import { StatusCode, logger } from '../common'
+import { StatusCode, buildApp, logger } from '../common'
 import supertest from 'supertest'
 
 describe('Items', () => {
@@ -17,7 +16,7 @@ describe('Items', () => {
 
   beforeAll(async () => {
     await cleanupDb()
-    app = build({ logger: { level: 'error' } })
+    app = buildApp()
     await app.listen(0)
   })
 
@@ -254,16 +253,57 @@ describe('Items', () => {
     it('deletes the given item', async () => {
       const user = await RecordManager.createUser({ id: 1 })
       await RecordManager.loadFixture('items/items.for-user#1')
-      const beforeItemCount = await Item.query().resultSize()
-      const item = await Item.query().first()
+      const items = await Item.query()
 
       const agent = await SessionManager.loginAsUser(app, user)
       const res = await agent
-        .delete(`${ROOT_PATH}/${item.id}`)
+        .delete(`${ROOT_PATH}/${items[0].id}`)
       expect(res.status).toBe(StatusCode.NO_CONTENT)
 
       const afterItemCount = await Item.query().resultSize()
-      expect(afterItemCount).toEqual(beforeItemCount - 1)
+      expect(afterItemCount).toEqual(items.length - 1)
+    })
+  })
+
+  describe('DELETE /:id?with_contents=1', () => {
+    beforeEach(async () => {
+      await cleanupDb()
+    })
+
+    it('returns no error if item has no contents', async () => {
+      const user = await RecordManager.createUser({ id: 1 })
+      // Has no items with parents
+      await RecordManager.loadFixture('items/items.for-user#1')
+      const items = await Item.query()
+      const item = items[0]
+
+      const agent = await SessionManager.loginAsUser(app, user)
+      const res = await agent
+        .delete(`${ROOT_PATH}/${item.id}?with_contents=1`)
+      expect(res.status).toBe(StatusCode.NO_CONTENT)
+
+      const newItemsCount = await Item.query().resultSize()
+      expect(items.length).toEqual(newItemsCount + 1)
+    })
+
+    it('deletes the given item with its children', async () => {
+      const user = await RecordManager.createUser({ id: 1 })
+      await RecordManager.loadFixture('items/item.with-children.for-user#1')
+
+      const items = await Item
+        .query()
+        .modify('defaultSelects')
+        // container first
+        .orderBy('id') as Item[]
+      const item = items[0]
+
+      const agent = await SessionManager.loginAsUser(app, user)
+      const res = await agent
+        .delete(`${ROOT_PATH}/${item.id}?with_contents=1`)
+      expect(res.status).toBe(StatusCode.NO_CONTENT)
+
+      const afterItemCount = await Item.query().resultSize()
+      expect(afterItemCount).toEqual(items.length - item.children.length - 1)
     })
   })
 })

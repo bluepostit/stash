@@ -8,6 +8,10 @@ interface CreateItemBody {
   description: string
 }
 
+type DeleteItemQuery = {
+  with_contents?: string
+}
+
 const createItemSchema = {
   body: { $ref: 'createItem#body' },
   response: {
@@ -15,6 +19,18 @@ const createItemSchema = {
       $ref: 'createItem#response',
     },
   },
+}
+
+const deleteItemSchema = {
+  querystring: {
+    type: 'object',
+    properties: {
+      withContents: {
+        type: 'string',
+        enum: [ '1' ]
+      }
+    }
+  }
 }
 
 const plugin: FastifyPluginCallback = async (fastify, _options, done) => {
@@ -60,9 +76,17 @@ const plugin: FastifyPluginCallback = async (fastify, _options, done) => {
         setEntity,
         fastify.auth.authorizeEntity,
       ],
+      schema: deleteItemSchema,
     },
     async (request, reply) => {
-      await (request.entity as Item)
+      const item = request.entity as Item
+      const query = request.query as DeleteItemQuery
+      if (query.with_contents && query.with_contents === '1') {
+        await item
+          .$relatedQuery('children')
+          .delete()
+      }
+      await item
         .$query()
         .delete()
       reply.code(StatusCode.NO_CONTENT)
