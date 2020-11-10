@@ -1,7 +1,7 @@
 import mocker from 'mock-knex'
 import knex from '../../src/config/knex'
 import Item from '../../src/models/item'
-import * as fixtures from './item.spec.fixture'
+import * as mocks from './item.spec.mocks'
 // @ts-ignore
 import debug from '../util/debug'
 
@@ -20,16 +20,16 @@ describe('Item', () => {
     mocker.unmock(knex)
   })
 
-  const trackWith = (fixture: { [index: number]: object[] }) => {
+  const trackWith = (mock: { [index: number]: object[] }) => {
     tracker.on('query', (query, step) => {
-      let response: object[] = fixture[step - 1]
+      let response: object[] = mock[step - 1]
       query.response(response)
     })
   }
 
   describe('parents and children', () => {
     test('can become a child of another Item', async () => {
-      trackWith(fixtures.anItemCanBecomeAChild)
+      trackWith(mocks.anItemCanBecomeAChild)
 
       const items = await Item.query()
       let parent = items[0]
@@ -61,7 +61,7 @@ describe('Item', () => {
     })
 
     test('can be removed from its parent Item', async () => {
-      trackWith(fixtures.anItemCanBeRemovedFromItsParent)
+      trackWith(mocks.anItemCanBeRemovedFromItsParent)
 
       let items = await Item
         .query()

@@ -45,7 +45,7 @@ const RecordManager: RecordManagerInterface = class RecordManager {
       dirPrefix = path.join(__dirname, '..', 'src', 'routes')
     }
     await fixtures.loadFile(
-      path.join(dirPrefix, `${name}.fixture.json`),
+      path.join(dirPrefix, `${name}.json`),
       knex
     )
   }
