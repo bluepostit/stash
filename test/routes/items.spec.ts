@@ -1,10 +1,10 @@
 import { FastifyInstance } from 'fastify'
-import build from '../../../src/app'
-import { Item } from '../../../src/models'
-import RecordManager from '../../util/record-manager'
-import SessionManager from '../../util/session-manager'
+import build from '../../src/app'
+import { Item } from '../../src/models'
+import RecordManager from '../util/record-manager'
+import SessionManager from '../util/session-manager'
 // @ts-ignore
-import { StatusCode, logger } from '../../common'
+import { StatusCode, logger } from '../common'
 import supertest from 'supertest'
 
 describe('Items', () => {
@@ -52,7 +52,7 @@ describe('Items', () => {
     })
 
     it("doesn't return other users' items", async () => {
-      await RecordManager.loadFixture('items.with-user#1', 'routes')
+      await RecordManager.loadFixture('items/items.with-user#1')
       const user = await RecordManager.createUser({ id: 2 })
       const agent = await SessionManager.loginAsUser(app, user)
 
@@ -63,10 +63,7 @@ describe('Items', () => {
 
     it("returns a list of the user's items", async () => {
       const user = await RecordManager.createUser({ id: 1 })
-      await RecordManager.loadFixture(
-        'items.for-user#1',
-        'routes'
-      )
+      await RecordManager.loadFixture('items/items.for-user#1')
       const items = await Item.query()
       const agent = await SessionManager.loginAsUser(app, user)
 
@@ -97,7 +94,7 @@ describe('Items', () => {
 
     it('returns an error when the item belongs to another user', async () => {
       const user = await RecordManager.createUser({ id: 2 })
-      await RecordManager.loadFixture('items.with-user#1', 'routes')
+      await RecordManager.loadFixture('items/items.with-user#1')
       const items = await Item.query()
       const agent = await SessionManager.loginAsUser(app, user)
 
@@ -112,6 +109,21 @@ describe('Items', () => {
       const res = await agent.get(`${ROOT_PATH}/1`)
       expect(res.status).toBe(StatusCode.NOT_FOUND)
       expect(res.body.message).toMatch(/found/i)
+    })
+
+    it('returns the correct item', async () => {
+      const user = await RecordManager.createUser({ id: 1 })
+      await RecordManager.loadFixture('items/items.for-user#1')
+      const items = await Item.query()
+      const item = items[0]
+      const agent = await SessionManager.loginAsUser(app, user)
+
+      const res = await agent.get(`${ROOT_PATH}/${item.id}`)
+      expect(res.status).toBe(StatusCode.OK)
+      expect(res.body).toHaveProperty('item')
+      expect(res.body.item).toHaveProperty('id', item.id)
+      expect(res.body.item).toHaveProperty('name', item.name)
+      expect(res.body.item).toHaveProperty('description', item.description)
     })
   })
 
@@ -180,7 +192,7 @@ describe('Items', () => {
 
     it('returns an error if item belongs to another user', async () => {
       const user = await RecordManager.createUser({ id: 2 })
-      await RecordManager.loadFixture('items.with-user#1', 'routes')
+      await RecordManager.loadFixture('items/items.with-user#1')
       const item = await Item.query().first()
 
       const agent = await SessionManager.loginAsUser(app, user)
@@ -196,7 +208,7 @@ describe('Items', () => {
 
     it('updates item with values from the request', async () => {
       const user = await RecordManager.createUser({ id: 1 })
-      await RecordManager.loadFixture('items.for-user#1', 'routes')
+      await RecordManager.loadFixture('items/items.for-user#1')
       const item = await Item.query().first()
 
       const agent = await SessionManager.loginAsUser(app, user)
@@ -230,7 +242,7 @@ describe('Items', () => {
 
     it('returns an error if item belongs to another user', async () => {
       const user = await RecordManager.createUser({ id: 2 })
-      await RecordManager.loadFixture('items.with-user#1', 'routes')
+      await RecordManager.loadFixture('items/items.with-user#1')
       const item = await Item.query().first()
 
       const agent = await SessionManager.loginAsUser(app, user)
@@ -241,7 +253,7 @@ describe('Items', () => {
 
     it('deletes the given item', async () => {
       const user = await RecordManager.createUser({ id: 1 })
-      await RecordManager.loadFixture('items.for-user#1', 'routes')
+      await RecordManager.loadFixture('items/items.for-user#1')
       const beforeItemCount = await Item.query().resultSize()
       const item = await Item.query().first()
 

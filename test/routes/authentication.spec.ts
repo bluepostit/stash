@@ -1,8 +1,8 @@
 import { FastifyInstance } from 'fastify'
 import supertest from 'supertest'
-import build from '../../../src/app'
-import { User } from '../../../src/models'
-import RecordManager from '../../util/record-manager'
+import build from '../../src/app'
+import { User } from '../../src/models'
+import RecordManager from '../util/record-manager'
 // @ts-ignore
 import debug from '../../util/debug'
 
