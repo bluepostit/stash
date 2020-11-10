@@ -113,6 +113,21 @@ describe('Items', () => {
       expect(res.status).toBe(StatusCode.NOT_FOUND)
       expect(res.body.message).toMatch(/found/i)
     })
+
+    it('returns the correct item', async () => {
+      const user = await RecordManager.createUser({ id: 1 })
+      await RecordManager.loadFixture('items.for-user#1', 'routes')
+      const items = await Item.query()
+      const item = items[0]
+      const agent = await SessionManager.loginAsUser(app, user)
+
+      const res = await agent.get(`${ROOT_PATH}/${item.id}`)
+      expect(res.status).toBe(StatusCode.OK)
+      expect(res.body).toHaveProperty('item')
+      expect(res.body.item).toHaveProperty('id', item.id)
+      expect(res.body.item).toHaveProperty('name', item.name)
+      expect(res.body.item).toHaveProperty('description', item.description)
+    })
   })
 
   describe('POST /', () => {
