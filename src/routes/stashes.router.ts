@@ -18,10 +18,18 @@ const createStashSchema = {
   },
 }
 
+type DeleteStashQuery = {
+  with_contents?: string
+}
+
+const deleteStashSchema = {
+  querystring: { $ref: 'deleteStash' }
+}
+
 const plugin: FastifyPluginCallback = async (fastify, _options, done) => {
   const ROOT_PATH = '/stashes'
   // Returns a preHandler function
-  // const setEntity = fastify.db.buildSetEntity(Stash)
+  const setEntity = fastify.db.buildSetEntity(Stash)
 
   fastify.post<{ Body: CreateStashBody }>(
     ROOT_PATH,
@@ -43,6 +51,28 @@ const plugin: FastifyPluginCallback = async (fastify, _options, done) => {
       reply.send({
         stash,
       })
+    }
+  )
+
+  fastify.delete(
+    `${ROOT_PATH}/:id`,
+    {
+      preHandler: [
+        fastify.auth.mustBeSignedIn,
+        setEntity,
+        fastify.auth.authorizeEntity,
+      ],
+      schema: deleteStashSchema,
+    },
+    async (request, reply) => {
+      const stash = request.entity as Stash
+      const query = request.query as DeleteStashQuery
+      if (query.with_contents && query.with_contents === '1') {
+        await stash.$relatedQuery('items').delete()
+      }
+      await stash.$query().delete()
+      reply.code(StatusCode.NO_CONTENT)
+      reply.send()
     }
   )
 
