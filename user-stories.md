@@ -17,6 +17,7 @@
 - As a user I can drop my item
 As a user I can drop my item, and its contents will be transferred to its parent stash
 - As a user I can drop my item with its contents if it is a container
+- As a user I can add my item to my stash
 - As a user I can transfer an item to transit
 - As a user I can transfer an item to another stash
 - As a user I can see how far away each item is from my location
