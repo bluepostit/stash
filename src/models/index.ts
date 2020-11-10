@@ -5,7 +5,7 @@ import User from './user'
 
 const dependencyOrder: typeof Model[] = [ Stash, Item, User ]
 
-export { dependencyOrder, Item, Stash, User, Model }
+export { dependencyOrder, Stash, Item, User, Model }
 export default [ Item, Stash, User ]
 
 interface BelongsToUser {

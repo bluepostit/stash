@@ -38,16 +38,16 @@ export default class Stash extends Model implements BelongsToUser {
       relation: Model.HasManyRelation,
       modelClass: Item,
       join: {
-        from: 'items.stash_id',
-        to: 'stashes.id'
+        from: 'stashes.id',
+        to: 'items.stash_id'
       }
     }
   })
 
   static modifiers: Modifiers = {
     defaultSelects(query) {
-      query.select('id', 'name', 'address', 'notes', 'items')
-        .withGraphFetched('[items]')
+      query.select('id', 'name', 'address', 'notes', 'user_id')
+        .withGraphFetched('[items,user]')
     }
   }
 }

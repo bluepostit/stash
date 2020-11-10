@@ -36,7 +36,7 @@ pinoDebug(logger, {
 export const buildApp = () => {
   return build({
       logger: {
-        level: 'warn',
+        level: config.get('LEVEL'),
         // @ts-ignore
         file: '/tmp/stash-test.log',
         prettyPrint: true

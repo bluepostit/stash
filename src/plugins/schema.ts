@@ -143,6 +143,22 @@ const plugin: FastifyPluginCallback = async (fastify, _options, done) => {
     },
   })
 
+  fastify.addSchema({
+    $id: 'deleteStash',
+    type: 'object',
+    definitions: {
+      querystring: {
+        type: 'object',
+        properties: {
+          withContents: {
+            type: 'string',
+            enum: ['1'],
+          },
+        },
+      },
+    },
+  })
+
   // @ts-ignore
   // fastify.log.error(fastify.getSchemas())
   // @ts-ignore

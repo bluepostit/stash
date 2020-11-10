@@ -4,7 +4,10 @@ import * as Knex from "knex";
 export async function up(knex: Knex): Promise<void> {
   return knex.schema.alterTable('items', (t) => {
     t.integer('stash_id').unsigned()
-    t.foreign('stash_id').references('id').inTable('stashes')
+    t.foreign('stash_id')
+      .references('id')
+      .inTable('stashes')
+      .onDelete('SET NULL')
   })
 }
 
