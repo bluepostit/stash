@@ -1,6 +1,7 @@
 import { Model, Modifiers, QueryContext } from 'objection'
 import bcrypt from 'bcrypt'
 import Item from './item'
+import Stash from './stash'
 
 const HASH_SALT_ROUNDS = 10
 
@@ -10,6 +11,7 @@ export default class User extends Model {
   email!: string
   password!: string
   items!: Item[]
+  stashes!: Stash[]
 
   static tableName = 'users'
 
@@ -59,6 +61,15 @@ export default class User extends Model {
       join: {
         from: 'users.id',
         to: 'items.user_id'
+      }
+    },
+
+    stashes: {
+      relation: Model.HasManyRelation,
+      modelClass: Stash,
+      join: {
+        from: 'users.id',
+        to: 'stashes.user_id'
       }
     }
   })

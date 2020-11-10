@@ -155,7 +155,7 @@ describe('Items', () => {
           agent = await SessionManager.loginAsUser(app, user)
         })
 
-        test('returns $expectedStatus when given $name, $desc for name and description', async () => {
+        test(`returns ${expectedStatus} when given '${name}', '${desc}' for name and description`, async () => {
           const res = await agent.post(ROOT_PATH).send({
             name: name,
             description: desc,

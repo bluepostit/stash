@@ -1,5 +1,13 @@
 import { FastifyPluginCallback } from 'fastify'
 import fp from 'fastify-plugin'
+import { Model, Stash } from '../models'
+
+const buildSchema: (i: typeof Model, $id: string) => object
+  = (model: typeof Model, $id: string) => {
+    const schema = model.jsonSchema
+    schema.$id = $id
+    return schema
+}
 
 const plugin: FastifyPluginCallback = async (fastify, _options, done) => {
   fastify.addSchema({
@@ -20,13 +28,23 @@ const plugin: FastifyPluginCallback = async (fastify, _options, done) => {
       description: { type: 'string' },
       user_id: { type: 'number' },
       parent: {
-        oneOf: [
-          { type: 'object' },
-          { type: 'null' }
-        ]
+        oneOf: [{ type: 'object' }, { type: 'null' }],
       },
-      children: { type: 'array' }
-    }
+      children: { type: 'array' },
+    },
+  })
+
+  fastify.addSchema({
+    $id: 'stash',
+    type: 'object',
+    properties: {
+      id: { type: 'number' },
+      name: { type: 'string' },
+      address: { type: 'string' },
+      notes: { type: 'string' },
+      user_id: { type: 'number' },
+      children: { type: 'array' },
+    },
   })
 
   fastify.addSchema({
@@ -89,7 +107,7 @@ const plugin: FastifyPluginCallback = async (fastify, _options, done) => {
     required: ['item'],
     properties: {
       item: {
-        $ref: 'item#'
+        $ref: 'item#',
       },
     },
   }
@@ -99,9 +117,36 @@ const plugin: FastifyPluginCallback = async (fastify, _options, done) => {
     type: 'object',
     definitions: {
       body: createItemBody,
-      response: createItemResponse
+      response: createItemResponse,
     },
   })
+
+  const createStashBody = buildSchema(Stash, '#body')
+
+  const createStashResponse = {
+    $id: '#response',
+    type: 'object',
+    required: ['stash'],
+    properties: {
+      stash: {
+        $ref: 'stash#',
+      },
+    },
+  }
+
+  fastify.addSchema({
+    $id: 'createStash',
+    type: 'object',
+    definitions: {
+      body: createStashBody,
+      response: createStashResponse,
+    },
+  })
+
+  // @ts-ignore
+  // fastify.log.error(fastify.getSchemas())
+  // @ts-ignore
+  // console.log(fastify.getSchema('createItem'))
 
   done()
 }
