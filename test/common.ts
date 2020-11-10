@@ -2,6 +2,7 @@ import pino from 'pino'
 import pinoDebug from 'pino-debug'
 import { User } from '../src/models/'
 import config from '../src/config'
+import build from '../src/app'
 
 export const insertUser = async (email: string | null, password: string | null) => {
   // @ts-ignore
@@ -31,3 +32,14 @@ pinoDebug(logger, {
     // '*': 'trace'
   }
 })
+
+export const buildApp = () => {
+  return build({
+      logger: {
+        level: 'error',
+        // @ts-ignore
+        file: '/tmp/stash-test.log',
+        prettyPrint: true
+      }
+    })
+}
