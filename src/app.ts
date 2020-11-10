@@ -14,6 +14,7 @@ import auth from './plugins/authentication'
 import authRouter from './routes/authentication.router'
 import petsRouter from "./routes/pets.router";
 import itemsRouter from "./routes/items.router";
+import stashesRouter from './routes/stashes.router'
 
 
 function build(opts: FastifyServerOptions = {}) {
@@ -50,6 +51,7 @@ function build(opts: FastifyServerOptions = {}) {
   app.register(authRouter)
   app.register(petsRouter)
   app.register(itemsRouter)
+  app.register(stashesRouter)
 
   return app
 }
