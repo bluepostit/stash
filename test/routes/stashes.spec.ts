@@ -179,4 +179,56 @@ describe('Stashes', () => {
       expect(itemCount).toEqual(0)
     })
   })
+
+  describe('GET /', () => {
+    beforeEach(async () => {
+      await cleanupDb()
+    })
+
+    it('returns an error if user is not signed in', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `${ROOT_PATH}`,
+      })
+      expect(res.statusCode).toBe(StatusCode.UNAUTHORIZED)
+    })
+
+    it('returns an empty list if user has no stashes', async () => {
+      const user = await RecordManager.createUser()
+      const agent = await SessionManager.loginAsUser(app, user)
+
+      // fetch stashes
+      const res = await agent.get(ROOT_PATH)
+
+      expect(res.status).toBe(StatusCode.OK)
+      expect(res.body.stashes).toEqual([])
+    })
+
+    it("doesn't return other users' stashes", async () => {
+      await RecordManager.loadFixture('stashes/stashes.with-user#1')
+      const user = await RecordManager.createUser({ id: 2 })
+      const agent = await SessionManager.loginAsUser(app, user)
+
+      const res = await agent.get(ROOT_PATH)
+      expect(res.status).toBe(StatusCode.OK)
+      expect(res.body.stashes).toEqual([])
+    })
+
+    it("returns a list of the user's stashes", async () => {
+      const user = await RecordManager.createUser({ id: 1 })
+      await RecordManager.loadFixture('stashes/stashes.for-user#1')
+      const stashes = await Stash.query()
+      const agent = await SessionManager.loginAsUser(app, user)
+
+      const res = await agent.get(ROOT_PATH)
+      expect(res.status).toBe(StatusCode.OK)
+      const resStashes = res.body.stashes as { [index: string]: any }[]
+
+      expect(resStashes).toHaveLength(stashes.length)
+      // Check they have the same ids
+      const stashIds = stashes.map((i) => i.id).sort()
+      const resStashIds = resStashes.map((i) => i.id).sort()
+      expect(stashIds).toEqual(resStashIds)
+    })
+  })
 })

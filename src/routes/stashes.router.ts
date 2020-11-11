@@ -1,6 +1,6 @@
 import { FastifyPluginCallback } from 'fastify'
 import fp from 'fastify-plugin'
-import { Stash } from '../models'
+import { Stash, User } from '../models'
 import StatusCode from '../common/http-status-code'
 
 interface CreateStashBody {
@@ -30,6 +30,20 @@ const plugin: FastifyPluginCallback = async (fastify, _options, done) => {
   const ROOT_PATH = '/stashes'
   // Returns a preHandler function
   const setEntity = fastify.db.buildSetEntity(Stash)
+
+  fastify.get(
+    ROOT_PATH,
+    {
+      preHandler: fastify.auth.mustBeSignedIn,
+    },
+    async (request, _reply) => {
+      const user = request.session.user as User
+      const stashes = await user
+        .$relatedQuery('stashes')
+        .modify('defaultSelects')
+      return { stashes }
+    }
+  )
 
   fastify.post<{ Body: CreateStashBody }>(
     ROOT_PATH,
