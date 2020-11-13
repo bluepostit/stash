@@ -47,7 +47,7 @@ export default class Stash extends Model implements BelongsToUser {
   static modifiers: Modifiers = {
     defaultSelects(query) {
       query.select('id', 'name', 'address', 'notes', 'user_id')
-        .withGraphFetched('[items,user]')
+        .withGraphFetched('[items(defaultSelects), user]')
     }
   }
 }

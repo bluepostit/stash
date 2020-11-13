@@ -45,6 +45,22 @@ const plugin: FastifyPluginCallback = async (fastify, _options, done) => {
     }
   )
 
+  fastify.get(
+    `${ROOT_PATH}/:id`,
+    {
+      preHandler: [
+        fastify.auth.mustBeSignedIn,
+        setEntity,
+        fastify.auth.authorizeEntity
+      ]
+    },
+    async (request, _reply) => {
+      return {
+        stash: request.entity
+      }
+    }
+  )
+
   fastify.post<{ Body: CreateStashBody }>(
     ROOT_PATH,
     {

@@ -85,7 +85,7 @@ describe('Stashes', () => {
     it('returns an error if user is not signed in', async () => {
       const res = await app.inject({
         method: 'DELETE',
-        url: `${ROOT_PATH}/1`
+        url: `${ROOT_PATH}/1`,
       })
       expect(res.statusCode).toBe(StatusCode.UNAUTHORIZED)
     })
@@ -117,13 +117,8 @@ describe('Stashes', () => {
       const user = await RecordManager.createUser({ id: 1 })
       await RecordManager.loadFixture('stashes/stash.with-items.for-user#1')
 
-      const stash = (await Stash
-        .query()
-        .select('id')
-        .first()) as Stash
-      const itemCountBefore = await Item
-        .query()
-        .resultSize()
+      const stash = (await Stash.query().select('id').first()) as Stash
+      const itemCountBefore = await Item.query().resultSize()
 
       const agent = await SessionManager.loginAsUser(app, user)
       const res = await agent.delete(`${ROOT_PATH}/${stash.id}`)
@@ -134,7 +129,6 @@ describe('Stashes', () => {
 
       const itemCountAfter = await Item.query().resultSize()
       expect(itemCountBefore).toEqual(itemCountAfter)
-
     })
   })
 
@@ -162,8 +156,7 @@ describe('Stashes', () => {
       const user = await RecordManager.createUser({ id: 1 })
       await RecordManager.loadFixture('stashes/stash.with-items.for-user#1')
 
-      const stashes = (await Stash
-        .query()
+      const stashes = (await Stash.query()
         .modify('defaultSelects')
         .orderBy('id')) as Stash[]
       const stash = stashes[0]
@@ -229,6 +222,64 @@ describe('Stashes', () => {
       const stashIds = stashes.map((i) => i.id).sort()
       const resStashIds = resStashes.map((i) => i.id).sort()
       expect(stashIds).toEqual(resStashIds)
+    })
+  })
+
+  describe('GET /:id', () => {
+    beforeEach(async () => {
+      await cleanupDb()
+    })
+
+    it('returns an error when user is not signed in', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `${ROOT_PATH}/1`,
+      })
+      expect(res.statusCode).toBe(StatusCode.UNAUTHORIZED)
+    })
+
+    it('returns an error when the stash belongs to another user', async () => {
+      const user = await RecordManager.createUser({ id: 2 })
+      await RecordManager.loadFixture('stashes/stashes.with-user#1')
+      const stashes = await Stash.query()
+      const agent = await SessionManager.loginAsUser(app, user)
+
+      const res = await agent.get(`${ROOT_PATH}/${stashes[0].id}`)
+      expect(res.status).toBe(StatusCode.FORBIDDEN)
+    })
+
+    it('returns an error when the stash does not exist', async () => {
+      const user = await RecordManager.createUser()
+      const agent = await SessionManager.loginAsUser(app, user)
+
+      const res = await agent.get(`${ROOT_PATH}/1`)
+      expect(res.status).toBe(StatusCode.NOT_FOUND)
+      expect(res.body.message).toMatch(/found/i)
+    })
+
+    it('returns the correct stash and its items', async () => {
+      const user = await RecordManager.createUser({ id: 1 })
+      await RecordManager.loadFixture(
+        'stashes/stash.with-items.for-user#1')
+      const stashes = await Stash
+        .query()
+        .modify('defaultSelects')
+      const stash = stashes[0]
+      const agent = await SessionManager.loginAsUser(app, user)
+
+      const res = await agent.get(`${ROOT_PATH}/${stash.id}`)
+      expect(res.status).toBe(StatusCode.OK)
+      expect(res.body).toHaveProperty('stash')
+      const bodyStash = res.body.stash
+      expect(bodyStash).toHaveProperty('id', stash.id)
+      expect(bodyStash).toHaveProperty('name', stash.name)
+      expect(bodyStash).toHaveProperty('address', stash.address)
+      expect(bodyStash).toHaveProperty('notes', stash.notes)
+
+      expect(bodyStash).toHaveProperty('items')
+      expect(bodyStash.items.length).toEqual(stash.items.length)
+      expect(bodyStash.items[0].id).toEqual(stash.items[0].id)
+      expect(bodyStash.items[0].name).toEqual(stash.items[0].name)
     })
   })
 })

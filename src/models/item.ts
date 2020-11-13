@@ -6,6 +6,7 @@ export default class Item extends Model implements BelongsToUser {
   name!: string
   description!: string
   user_id!: number
+  created_at!: Date
 
   parent!: Item | null
   children!: Item[]
@@ -55,7 +56,7 @@ export default class Item extends Model implements BelongsToUser {
 
   static modifiers: Modifiers = {
     defaultSelects(query) {
-      query.select('id', 'name', 'description', 'user_id')
+      query.select('id', 'name', 'description', 'user_id', 'created_at')
         .withGraphFetched('[parent,children]')
     }
   }
