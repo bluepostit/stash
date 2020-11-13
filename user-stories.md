@@ -2,7 +2,7 @@
 ## Stash
 - 🌍️ As a user I can create a new stash
 - 🌍️ As a user I can see a list of my stashes
-- As a user I can see my stash's details with its items
+- 🌍️ As a user I can see my stash's details with its items
 - 🌍️ As a user I can drop my stash
 - As a user I can edit my stash
 - As a user I can quickly add multiple items to a stash
