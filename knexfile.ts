@@ -30,6 +30,11 @@ const buildConfig = (name: string) => {
     seeds: {
       directory: path.join(
         __dirname, `src/db/seeds/${name}`)
+    },
+    logging: {
+      query: config.get('QUERY_LOG') || null,
+      queryError: config.get('QUERY_ERROR_LOG') || null,
+      queryResponse: config.get('QUERY_RESPONSE_LOG') || null
     }
   }
 }
