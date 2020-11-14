@@ -78,6 +78,10 @@ export default class User extends Model {
     defaultSelects(query) {
       query.select('id', 'name', 'email')
         .withGraphFetched('[items]')
+    },
+
+    onlyId(query) {
+      query.select('id')
     }
   }
 }

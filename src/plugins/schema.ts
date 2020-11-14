@@ -20,17 +20,29 @@ const plugin: FastifyPluginCallback = async (fastify, _options, done) => {
   })
 
   fastify.addSchema({
+    $id: 'hasId',
+    type: 'object',
+    required: ['id'],
+    properties: {
+      id: { type: 'number' }
+    }
+  })
+
+  fastify.addSchema({
     $id: 'item',
     type: 'object',
     properties: {
       id: { type: 'number' },
       name: { type: 'string' },
       description: { type: 'string' },
-      user_id: { type: 'number' },
+      user: { $ref: 'hasId#' },
       parent: {
         oneOf: [{ type: 'object' }, { type: 'null' }],
       },
       children: { type: 'array' },
+      stash: {
+        oneOf: [{type: 'object' }, {type: 'null'}]
+      },
     },
   })
 
@@ -98,6 +110,9 @@ const plugin: FastifyPluginCallback = async (fastify, _options, done) => {
         type: 'string',
         minLength: 6,
       },
+      stash_id: {
+        type: 'number'
+      }
     },
   }
 
