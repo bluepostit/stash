@@ -10,7 +10,7 @@
 
 ## Item
 - 🌍️ As a user I can create a new item
-- As a user I can create a new item and add it to a stash
+- 🌍️ As a user I can create a new item and add it to a stash
 - 🌍️ As a user I can see my item's details
 - 🌍️ As a user I can see my item's contents if it is a container
 - As a user I can edit my item
