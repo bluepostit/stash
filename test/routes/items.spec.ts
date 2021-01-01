@@ -206,6 +206,33 @@ describe('Items', () => {
           expect(itemCount).toEqual(0)
           expect (res.status).toBe(StatusCode.FORBIDDEN)
     })
+
+    it('creates the new item for the given stash', async () => {
+      await cleanupDb()
+      const user = await RecordManager.createUser({ id: 1 })
+      await RecordManager.loadFixture('stashes/stashes.for-user#1')
+      const stash = await Stash
+        .query()
+        .first()
+        .modify('defaultSelects')
+      const agent = await SessionManager.loginAsUser(app, user)
+      const data = {
+        name: 'Acoustic guitar',
+        description: 'Emerald green with black leather strap',
+        stash_id: stash.id,
+      }
+      const res = await agent.post(ROOT_PATH).send(data)
+      expect(res.status).toBe(StatusCode.CREATED)
+
+      const itemCount = await Item.query().resultSize()
+      expect(itemCount).toEqual(1)
+
+      const updatedStash = await Stash
+        .query()
+        .findById(stash.id)
+        .modify('defaultSelects')
+      expect(updatedStash.items.length).toEqual(stash.items.length + 1)
+    })
   })
 
   describe('PUT /:id', () => {
