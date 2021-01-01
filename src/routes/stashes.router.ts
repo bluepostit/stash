@@ -51,12 +51,12 @@ const plugin: FastifyPluginCallback = async (fastify, _options, done) => {
       preHandler: [
         fastify.auth.mustBeSignedIn,
         setEntity,
-        fastify.auth.authorizeEntity
+        fastify.auth.authorizeEntities
       ]
     },
     async (request, _reply) => {
       return {
-        stash: request.entity
+        stash: request.entities.get(Stash)
       }
     }
   )
@@ -90,17 +90,19 @@ const plugin: FastifyPluginCallback = async (fastify, _options, done) => {
       preHandler: [
         fastify.auth.mustBeSignedIn,
         setEntity,
-        fastify.auth.authorizeEntity,
+        fastify.auth.authorizeEntities,
       ],
       schema: deleteStashSchema,
     },
     async (request, reply) => {
-      const stash = request.entity as Stash
+      request.log.info('hit delete request')
+      const stash = request.entities.get(Stash) as Stash
       const query = request.query as DeleteStashQuery
       if (query.with_contents && query.with_contents === '1') {
         await stash.$relatedQuery('items').delete()
       }
-      await stash.$query().delete()
+      const res = await stash.$query().delete()
+      fastify.log.info(res.toString())
       reply.code(StatusCode.NO_CONTENT)
       reply.send()
     }

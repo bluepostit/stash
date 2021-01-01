@@ -9,7 +9,9 @@ export { dependencyOrder, Stash, Item, User, Model }
 export default [ Item, Stash, User ]
 
 interface BelongsToUser {
-  user_id: number | null
+  user: null | {
+    id: number
+  }
 }
 
 export { BelongsToUser }

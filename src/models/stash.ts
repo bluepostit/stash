@@ -8,6 +8,7 @@ export default class Stash extends Model implements BelongsToUser {
   notes!: string
   user_id!: number
 
+  user!: User | null
   items!: Item[]
 
   static tableName = 'stashes'

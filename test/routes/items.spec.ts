@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify'
-import { Item } from '../../src/models'
+import { Item, Stash } from '../../src/models'
 import RecordManager from '../util/record-manager'
 import SessionManager from '../util/session-manager'
 // @ts-ignore
@@ -170,6 +170,42 @@ describe('Items', () => {
         })
       }
     )
+
+    it('returns an error when given a non-existent stash', async () => {
+      await cleanupDb()
+      const user = await RecordManager.createUser({ id: 1 })
+      const agent = await SessionManager.loginAsUser(app, user)
+      const data = {
+        name: 'Acoustic guitar',
+        description: 'Emerald green with black leather strap',
+        stash_id: 1
+      }
+      const res = await agent.post(ROOT_PATH).send(data)
+
+      const itemCount = await Item.query().resultSize()
+      expect(itemCount).toEqual(0)
+      expect (res.status).toBe(StatusCode.NOT_FOUND)
+    })
+
+    it('returns an error when given a stash belonging to someone else',
+        async () => {
+          await cleanupDb()
+          await RecordManager.loadFixture('stashes/stashes.with-user#1')
+          const user = await RecordManager.createUser({ id: 2 })
+          const stash = await Stash.query().first()
+
+          const agent = await SessionManager.loginAsUser(app, user)
+          const data = {
+            name: 'Acoustic guitar',
+            description: 'Emerald green with black leather strap',
+            stash_id: stash.id
+          }
+          const res = await agent.post(ROOT_PATH).send(data)
+
+          const itemCount = await Item.query().resultSize()
+          expect(itemCount).toEqual(0)
+          expect (res.status).toBe(StatusCode.FORBIDDEN)
+    })
   })
 
   describe('PUT /:id', () => {
@@ -199,9 +235,7 @@ describe('Items', () => {
         name: 'Acoustic guitar',
         description: 'Emerald green with black leather strap',
       }
-      const res = await agent
-        .put(`${ROOT_PATH}/${item.id}`)
-        .send(details)
+      const res = await agent.put(`${ROOT_PATH}/${item.id}`).send(details)
       expect(res.status).toBe(StatusCode.FORBIDDEN)
     })
 
@@ -215,9 +249,7 @@ describe('Items', () => {
         name: 'A very new name after update',
         description: 'A very new description after update',
       }
-      const res = await agent
-        .put(`${ROOT_PATH}/${item.id}`)
-        .send(details)
+      const res = await agent.put(`${ROOT_PATH}/${item.id}`).send(details)
       expect(res.status).toBe(StatusCode.OK)
     })
   })
@@ -245,8 +277,7 @@ describe('Items', () => {
       const item = await Item.query().first()
 
       const agent = await SessionManager.loginAsUser(app, user)
-      const res = await agent
-        .delete(`${ROOT_PATH}/${item.id}`)
+      const res = await agent.delete(`${ROOT_PATH}/${item.id}`)
       expect(res.status).toBe(StatusCode.FORBIDDEN)
     })
 
@@ -256,8 +287,7 @@ describe('Items', () => {
       const items = await Item.query()
 
       const agent = await SessionManager.loginAsUser(app, user)
-      const res = await agent
-        .delete(`${ROOT_PATH}/${items[0].id}`)
+      const res = await agent.delete(`${ROOT_PATH}/${items[0].id}`)
       expect(res.status).toBe(StatusCode.NO_CONTENT)
 
       const afterItemCount = await Item.query().resultSize()
@@ -278,8 +308,7 @@ describe('Items', () => {
       const item = items[0]
 
       const agent = await SessionManager.loginAsUser(app, user)
-      const res = await agent
-        .delete(`${ROOT_PATH}/${item.id}?with_contents=1`)
+      const res = await agent.delete(`${ROOT_PATH}/${item.id}?with_contents=1`)
       expect(res.status).toBe(StatusCode.NO_CONTENT)
 
       const newItemsCount = await Item.query().resultSize()
@@ -290,16 +319,14 @@ describe('Items', () => {
       const user = await RecordManager.createUser({ id: 1 })
       await RecordManager.loadFixture('items/item.with-children.for-user#1')
 
-      const items = await Item
-        .query()
+      const items = (await Item.query()
         .modify('defaultSelects')
         // container first
-        .orderBy('id') as Item[]
+        .orderBy('id')) as Item[]
       const item = items[0]
 
       const agent = await SessionManager.loginAsUser(app, user)
-      const res = await agent
-        .delete(`${ROOT_PATH}/${item.id}?with_contents=1`)
+      const res = await agent.delete(`${ROOT_PATH}/${item.id}?with_contents=1`)
       expect(res.status).toBe(StatusCode.NO_CONTENT)
 
       const afterItemCount = await Item.query().resultSize()

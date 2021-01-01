@@ -11,25 +11,33 @@ const plugin: FastifyPluginCallback = (fastify, _options, done) => {
     done()
   }
 
-  const authorizeEntity: preHandlerHookHandler = (request, _reply, done) => {
-    const entity = (request.entity as unknown) as BelongsToUser
-    if (!entity) {
-      done(fastify.httpErrors.badRequest('No entity given'))
+  const authorizeEntities: preHandlerHookHandler = (request, _reply, done) => {
+    if (request.entities.size === 0) {
+      done()
     }
+
     if (request.session.user) {
       const user = (request.session.user as User)
-      if (user.id !== entity.user_id) {
-        fastify.log.info(`user ID: ${user.id} != entity's user ID: ${entity.user_id}`)
-        done(fastify.httpErrors.forbidden(
-          'This entity does not belong to you'
-        ))
-      }
+      request.entities.forEach((entity: unknown) => {
+        const entityObj = entity as BelongsToUser
+        const entityType = entityObj.constructor.name.toLowerCase()
+        // console.log(entityObj)
+        if (!entityObj.user || user.id !== entityObj.user.id) {
+          fastify.log.info(
+            `user ID: ${user.id} != ${entityType}'s user ID: `
+            + `${(entityObj.user as User).id}`)
+          done(fastify.httpErrors.forbidden(
+            `This ${entityType} does not belong to you`
+          ))
+        }
+      })
+      done()
     }
   }
 
   fastify.decorate('auth', {
     mustBeSignedIn,
-    authorizeEntity
+    authorizeEntities
   })
 
   done()
@@ -38,7 +46,7 @@ const plugin: FastifyPluginCallback = (fastify, _options, done) => {
 declare module 'fastify' {
   interface FastifyInstance {
     auth: {
-      authorizeEntity: preHandlerHookHandler,
+      authorizeEntities: preHandlerHookHandler,
       mustBeSignedIn: preHandlerHookHandler
     }
   }
