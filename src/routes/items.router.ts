@@ -1,11 +1,12 @@
 import { FastifyPluginCallback } from 'fastify'
 import fp from 'fastify-plugin'
-import { Item, User } from '../models'
+import { Item, Stash, User } from '../models'
 import StatusCode from '../common/http-status-code'
 
 interface CreateItemBody {
   name: string
   description: string
+  stash_id?: number
 }
 
 type DeleteItemQuery = {
@@ -36,7 +37,8 @@ const deleteItemSchema = {
 const plugin: FastifyPluginCallback = async (fastify, _options, done) => {
   const ROOT_PATH = '/items'
   // Returns a preHandler function
-  const setEntity = fastify.db.buildSetEntity(Item)
+  const setItem = fastify.db.buildSetEntity(Item)
+  const setStash = fastify.db.buildSetEntity(Stash, 'stash_id', true)
 
   fastify.get(
     ROOT_PATH,
@@ -57,13 +59,13 @@ const plugin: FastifyPluginCallback = async (fastify, _options, done) => {
     {
       preHandler: [
         fastify.auth.mustBeSignedIn,
-        setEntity,
-        fastify.auth.authorizeEntity,
+        setItem,
+        fastify.auth.authorizeEntities,
       ],
     },
     async (request, _reply) => {
       return {
-        item: request.entity,
+        item: request.entities.get(Item),
       }
     }
   )
@@ -73,13 +75,13 @@ const plugin: FastifyPluginCallback = async (fastify, _options, done) => {
     {
       preHandler: [
         fastify.auth.mustBeSignedIn,
-        setEntity,
-        fastify.auth.authorizeEntity,
+        setItem,
+        fastify.auth.authorizeEntities,
       ],
       schema: deleteItemSchema,
     },
     async (request, reply) => {
-      const item = request.entity as Item
+      const item = request.entities.get(Item) as Item
       const query = request.query as DeleteItemQuery
       if (query.with_contents && query.with_contents === '1') {
         await item
@@ -100,17 +102,23 @@ const plugin: FastifyPluginCallback = async (fastify, _options, done) => {
   }>(
     ROOT_PATH,
     {
-      preHandler: [fastify.auth.mustBeSignedIn],
+      preHandler: [
+        fastify.auth.mustBeSignedIn,
+        setStash,
+        fastify.auth.authorizeEntities,
+      ],
       schema: createItemSchema,
     },
     async (request, reply) => {
-      const { name, description } = request.body
+      const { name, description, stash_id } = request.body
+      const data = {
+        name,
+        description,
+        stash_id
+      }
       const item = await request.session.user
         .$relatedQuery('items')
-        .insert({
-          name,
-          description,
-        })
+        .insert(data)
         .modify('defaultSelects')
       reply.code(StatusCode.CREATED)
       reply.send({
@@ -126,14 +134,14 @@ const plugin: FastifyPluginCallback = async (fastify, _options, done) => {
     {
       preHandler: [
         fastify.auth.mustBeSignedIn,
-        setEntity,
-        fastify.auth.authorizeEntity,
+        setItem,
+        fastify.auth.authorizeEntities,
       ],
       schema: createItemSchema,
     },
     async (request, reply) => {
       const { name, description } = request.body
-      const item = request.entity as Item
+      const item = request.entities.get(Item) as Item
       await item.$query().update({
         name,
         description,

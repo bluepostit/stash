@@ -8,6 +8,7 @@ export default class Item extends Model implements BelongsToUser {
   user_id!: number
   created_at!: Date
 
+  user!: User | null
   parent!: Item | null
   children!: Item[]
   stash!: Stash | null

@@ -1,4 +1,4 @@
-import { FastifyPluginCallback, preHandlerHookHandler } from 'fastify'
+import { FastifyPluginCallback, FastifyRequest, preHandlerHookHandler } from 'fastify'
 import fp from 'fastify-plugin'
 import Knex from 'knex'
 import { Model } from 'objection'
@@ -6,32 +6,63 @@ import knex from '../config/knex'
 import * as models from '../models'
 
 interface RequestWithId {
-  id: number
+  [key: string]: number
 }
 
 const plugin: FastifyPluginCallback = async (fastify, _options, _done) => {
-  const buildSetEntity = (entityClass: typeof Model) => {
-    const fn: preHandlerHookHandler = async (request, _reply, done) => {
+  const getRequestSource = (
+      request: FastifyRequest, idKey: string
+    ): RequestWithId => {
       const params = request.params as RequestWithId
-      if (!params || !params.id) {
-        const error = fastify.httpErrors.badRequest(
-          `You must provide an ID for this ${entityClass.name}`
-        )
-        done(error)
+      const body = request.body as RequestWithId
+      let source = params
+      if (!params || !params[idKey]) {
+        source = body
       }
-      let query = entityClass.query().findById(params.id)
+      return source
+  }
+
+  const getRequestEntity = async (
+    entityClass: typeof Model,
+    source: RequestWithId,
+    idKey: string
+    ) => {
+      let query = entityClass.query().findById(source[idKey])
       if (entityClass.modifiers['defaultSelects']) {
         query = query.modify('defaultSelects')
       }
-      const entity = await query
-      if (!entity) {
-        const error = fastify.httpErrors.notFound(
-          `No ${entityClass.name} found with that ID`
-        )
-        done(error)
+      return (await query) as Model
+  }
+
+  const buildSetEntity = (
+      entityClass: typeof Model,
+      idKey: string = 'id',
+      optional: boolean = false
+      ) => {
+    const fn: preHandlerHookHandler = async (request, _reply) => {
+      if (!request.entities) {
+        request.entities = new Map<typeof Model, Model>()
       }
-      request.entity = entity
-      done()
+      const source = getRequestSource(request, idKey)
+      if (!source || !source[idKey]) {
+        if (optional) {
+          return
+        }
+        const error = fastify.httpErrors.badRequest(
+          `You must provide an ID for this ${entityClass.name.toLowerCase()}`
+        )
+        throw error
+      } else {
+        const entity = await getRequestEntity(entityClass, source, idKey)
+        if (entity) {
+          request.entities.set(entityClass, entity)
+          return
+        }
+        const error = fastify.httpErrors.notFound(
+          `No ${entityClass.name.toLowerCase()} found with that ID`
+        )
+        throw error
+      }
     }
     return fn
   }
@@ -66,14 +97,18 @@ declare module 'fastify' {
        * @param entityClass the class of the entity to use when retrieving
        * @returns preHandler hook function, curried to use `entityClass`
        */
-      buildSetEntity(entityClass: typeof Model): preHandlerHookHandler
+      buildSetEntity(entityClass: typeof Model,
+                     idKey?: string,
+                     optional?: boolean
+                    ): preHandlerHookHandler
     }
   }
 
   interface FastifyRequest {
     /**
-     * A `Model` instance representing the entity requested by its id.
+     * A Map of `Model` instances representing the entities specified
+     * in this request by their ids.
      */
-    entity: Model | undefined
+    entities: Map<typeof Model, Model>
   }
 }
